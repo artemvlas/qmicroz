@@ -1,6 +1,6 @@
 ### QMicroz is a simple Zip/Unzip solution for Qt projects.
 This is a lightweight C++/Qt wrapper around the [miniz](https://github.com/richgel999/miniz) zip library (based on zlib).
-The code can easily be compiled and used as a shared library, which will provide ready-made functions for quick and convenient work with zip archives. There is no need to add additional dependencies like zlib and deal with low-level APIs.
+The code can easily be compiled (or included) and used as a shared (or static) library, which will provide ready-made functions for quick and convenient work with zip archives. There is no need to add additional dependencies like zlib and deal with low-level APIs.
 
 ### Key features:
 * Extraction zip files.
@@ -23,7 +23,7 @@ For example:
 A complete list of functions is available in the _qmicroz.h_ file.
 
 ### How to link a compiled library to an existing project:
-Trivial example. Windows system, you have ready-made files: _libqmicroz.dll, libqmicroz.dll.a, qmicroz.h, qmicroz_global.h_
+Trivial example. Windows system, you have ready-made files: _libqmicroz.dll, libqmicroz.dll.a, qmicroz.h, qmicroz_global.h_\
 Just create a folder in the root of your Qt project (for example **'lib'**) and copy these files into it.
 
 And add to CMakeLists.txt:
