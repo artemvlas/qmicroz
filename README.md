@@ -7,7 +7,7 @@ The code can easily be compiled and used as a shared library, which will provide
 * Creation of zip archives from files and folders,
     as well as their combinations and lists.
 
-The library is currently positioned to work with relatively small files and folders. For example, for compressing/unpacking document contents (epub, docx, odt...). Work with files of few gigabytes in size has been tested, but for even larger ones it's not recommended, as currently (version 0.1) the file data is completely buffered in memory for processing.
+The library is currently positioned to work with relatively small files and folders. For example, for compressing/unpacking document contents (epub, docx, odt...). Work with files of few gigabytes in size has been tested, but for even larger ones it's not recommended, as currently (version 0.1) the file data is completely buffered in RAM for processing.
 
 ### How to use:
 Basic functions are available statically.
@@ -34,4 +34,8 @@ include_directories("lib")
 link_directories("lib")
 
 target_link_libraries(${PROJECT_NAME} PRIVATE qmicroz)
+```
+And then in your *.cpp file:
+```
+#include "qmicroz.h"
 ```
