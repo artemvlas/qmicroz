@@ -1,9 +1,9 @@
 /*
  * This file is part of QMicroz,
- * licensed under the MIT License.
+ * under the MIT License.
  * https://github.com/artemvlas/qmicroz
  *
- * Author: Artem Vlasenko <artemvlas (at) proton (dot) me>
+ * Author: Artem Vlasenko
  * https://github.com/artemvlas
 */
 #include "qmicroz.h"
@@ -111,8 +111,11 @@ bool QMicroz::compress_(const QStringList &paths)
 
 bool QMicroz::compress_file(const QString &source_path)
 {
-    const QString out_path = source_path + QStringLiteral(u".zip");
-    return compress_file(source_path, out_path);
+    QFileInfo __fi(source_path);
+    const QString _zip_name = __fi.completeBaseName() + QStringLiteral(u".zip");
+    const QString _out_path = __fi.absolutePath() % tools::s_sep % _zip_name;
+
+    return compress_file(source_path, _out_path);
 }
 
 bool QMicroz::compress_file(const QString &source_path, const QString &zip_path)
@@ -135,7 +138,7 @@ bool QMicroz::compress_file(const QString &source_path, const QString &zip_path)
     }
 
     // process
-    if (!tools::addFileToZip(&__za, source_path, QFileInfo(source_path).fileName())) {
+    if (!tools::add_item_file(&__za, source_path, QFileInfo(source_path).fileName())) {
         mz_zip_writer_end(&__za);
         return false;
     }

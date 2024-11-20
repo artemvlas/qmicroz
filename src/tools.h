@@ -1,9 +1,9 @@
 /*
  * This file is part of QMicroz,
- * licensed under the MIT License.
+ * under the MIT License.
  * https://github.com/artemvlas/qmicroz
  *
- * Author: Artem Vlasenko <artemvlas (at) proton (dot) me>
+ * Author: Artem Vlasenko
  * https://github.com/artemvlas
 */
 #ifndef TOOLS_H
@@ -25,8 +25,14 @@ bool addItemToZip(mz_zip_archive *p_zip, const QStringList &items, const QString
 // parses the list of file/folder paths and adds them to the archive
 bool addItemsToZip(mz_zip_archive *p_zip, const QStringList &items, const QString &rootFolder);
 
+// adds an empty subfolder item to the zip; 'in_path' is the path inside the archive
+bool add_item_folder(mz_zip_archive *p_zip, const QString &in_path);
+
+// adds file item and data to zip; 'fs_path' is the filesystem path; 'in_path' is the path inside the archive
+bool add_item_file(mz_zip_archive *p_zip, const QString &fs_path, const QString &in_path);
+
 // reads the file data and adds it to the archive
-bool addFileToZip(mz_zip_archive *p_zip, const QString &filePath, const QString &_path_in_zip);
+//bool addFileToZip(mz_zip_archive *p_zip, const QString &filePath, const QString &_path_in_zip);
 
 // creates a list of the folder's contents and sends it to ::addItemsToZip()
 bool addFolderToZip(mz_zip_archive *p_zip, const QString &folderPath);

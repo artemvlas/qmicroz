@@ -1,9 +1,9 @@
 /*
  * This file is part of QMicroz,
- * licensed under the MIT License.
+ * under the MIT License.
  * https://github.com/artemvlas/qmicroz
  *
- * Author: Artem Vlasenko <artemvlas (at) proton (dot) me>
+ * Author: Artem Vlasenko
  * https://github.com/artemvlas
 */
 

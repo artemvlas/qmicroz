@@ -1,0 +1,4 @@
+QMicroz v0.2
+* Now files are zipped directly, without full buffering in ram.
+* The modification date of files is now saved when archiving.
+* Improved handling of file and folder paths.

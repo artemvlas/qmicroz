@@ -1,9 +1,9 @@
 /*
  * This file is part of QMicroz,
- * licensed under the MIT License.
+ * under the MIT License.
  * https://github.com/artemvlas/qmicroz
  *
- * Author: Artem Vlasenko <artemvlas (at) proton (dot) me>
+ * Author: Artem Vlasenko
  * https://github.com/artemvlas
 */
 #include "tools.h"
@@ -60,8 +60,8 @@ bool addItemsToZip(mz_zip_archive *p_zip, const QStringList &items, const QStrin
         const QString _relPath = __d.relativeFilePath(_item);
 
         // adding item
-        if (__fi.isFile() && !addFileToZip(p_zip, _item, _relPath)                     // file
-            || (__fi.isDir() && !addItemToZip(p_zip, _relPath + s_sep, QByteArray()))) // subfolder
+        if (__fi.isFile() && !add_item_file(p_zip, _item, _relPath)  // file
+            || (__fi.isDir() && !add_item_folder(p_zip, _relPath)))  // subfolder
         {
             // adding failed
             mz_zip_writer_end(p_zip);
@@ -72,6 +72,23 @@ bool addItemsToZip(mz_zip_archive *p_zip, const QStringList &items, const QStrin
     return true;
 }
 
+bool add_item_folder(mz_zip_archive *p_zip, const QString &in_path)
+{
+    return addItemToZip(p_zip,
+                        in_path.endsWith('/') ? in_path : in_path + '/',
+                        QByteArray());
+}
+
+bool add_item_file(mz_zip_archive *p_zip, const QString &fs_path, const QString &in_path)
+{
+    qDebug() << "Adding:" << in_path;
+    return mz_zip_writer_add_file(p_zip,                            // zip archive
+                                  in_path.toUtf8().constData(),     // path inside the zip
+                                  fs_path.toUtf8().constData(),     // filesystem path
+                                  NULL, 0, MZ_DEFAULT_COMPRESSION);
+}
+
+/*
 bool addFileToZip(mz_zip_archive *p_zip, const QString &filePath, const QString &_path_in_zip)
 {
     QFile _file(filePath);
@@ -83,7 +100,7 @@ bool addFileToZip(mz_zip_archive *p_zip, const QString &filePath, const QString 
     return addItemToZip(p_zip,            // zip archive
                         _path_in_zip,     // relative path
                         _file.readAll()); // file data
-}
+}*/
 
 bool addFolderToZip(mz_zip_archive *p_zip, const QString &folderPath)
 {
