@@ -19,11 +19,8 @@ static const QChar s_sep = u'/';
 // root is the part of the path relative to which paths in the archive will be created
 bool createArchive(const QString &zip_path, const QStringList &item_paths, const QString &zip_root);
 
-// adds file or folder data to the archive
-bool addItemToZip(mz_zip_archive *p_zip, const QStringList &items, const QString &rootFolder);
-
-// parses the list of file/folder paths and adds them to the archive
-bool addItemsToZip(mz_zip_archive *p_zip, const QStringList &items, const QString &rootFolder);
+// adds to the archive an entry with file or folder data
+bool add_item_data(mz_zip_archive *p_zip, const QString &_item_path, const QByteArray &_data);
 
 // adds an empty subfolder item to the zip; 'in_path' is the path inside the archive
 bool add_item_folder(mz_zip_archive *p_zip, const QString &in_path);
@@ -31,11 +28,8 @@ bool add_item_folder(mz_zip_archive *p_zip, const QString &in_path);
 // adds file item and data to zip; 'fs_path' is the filesystem path; 'in_path' is the path inside the archive
 bool add_item_file(mz_zip_archive *p_zip, const QString &fs_path, const QString &in_path);
 
-// reads the file data and adds it to the archive
-//bool addFileToZip(mz_zip_archive *p_zip, const QString &filePath, const QString &_path_in_zip);
-
-// creates a list of the folder's contents and sends it to ::addItemsToZip()
-//bool addFolderToZip(mz_zip_archive *p_zip, const QString &folderPath);
+// parses the list of file/folder paths and adds them to the archive
+bool add_item_list(mz_zip_archive *p_zip, const QStringList &items, const QString &rootFolder);
 
 // returns a list of folder content paths; addRoot: the root folder is added to the list
 QStringList folderContent(const QString &folder, bool addRoot = true);

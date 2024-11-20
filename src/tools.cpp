@@ -28,7 +28,7 @@ bool createArchive(const QString &zip_path, const QStringList &item_paths, const
     }
 
     // process
-    if (!addItemsToZip(&__za, item_paths, zip_root))
+    if (!add_item_list(&__za, item_paths, zip_root))
         return false;
 
     // cleanup
@@ -38,7 +38,7 @@ bool createArchive(const QString &zip_path, const QStringList &item_paths, const
     return true;
 }
 
-bool addItemToZip(mz_zip_archive *p_zip, const QString &_item_path, const QByteArray &_data)
+bool add_item_data(mz_zip_archive *p_zip, const QString &_item_path, const QByteArray &_data)
 {
     qDebug() << "Adding:" << _item_path;
 
@@ -55,7 +55,23 @@ bool addItemToZip(mz_zip_archive *p_zip, const QString &_item_path, const QByteA
     return true;
 }
 
-bool addItemsToZip(mz_zip_archive *p_zip, const QStringList &items, const QString &rootFolder)
+bool add_item_folder(mz_zip_archive *p_zip, const QString &in_path)
+{
+    return add_item_data(p_zip,
+                         in_path.endsWith('/') ? in_path : in_path + '/',
+                         QByteArray());
+}
+
+bool add_item_file(mz_zip_archive *p_zip, const QString &fs_path, const QString &in_path)
+{
+    qDebug() << "Adding:" << in_path;
+    return mz_zip_writer_add_file(p_zip,                            // zip archive
+                                  in_path.toUtf8().constData(),     // path inside the zip
+                                  fs_path.toUtf8().constData(),     // filesystem path
+                                  NULL, 0, MZ_DEFAULT_COMPRESSION);
+}
+
+bool add_item_list(mz_zip_archive *p_zip, const QStringList &items, const QString &rootFolder)
 {
     QDir __d(rootFolder);
 
@@ -76,42 +92,6 @@ bool addItemsToZip(mz_zip_archive *p_zip, const QStringList &items, const QStrin
 
     return true;
 }
-
-bool add_item_folder(mz_zip_archive *p_zip, const QString &in_path)
-{
-    return addItemToZip(p_zip,
-                        in_path.endsWith('/') ? in_path : in_path + '/',
-                        QByteArray());
-}
-
-bool add_item_file(mz_zip_archive *p_zip, const QString &fs_path, const QString &in_path)
-{
-    qDebug() << "Adding:" << in_path;
-    return mz_zip_writer_add_file(p_zip,                            // zip archive
-                                  in_path.toUtf8().constData(),     // path inside the zip
-                                  fs_path.toUtf8().constData(),     // filesystem path
-                                  NULL, 0, MZ_DEFAULT_COMPRESSION);
-}
-
-/*
-bool addFileToZip(mz_zip_archive *p_zip, const QString &filePath, const QString &_path_in_zip)
-{
-    QFile _file(filePath);
-    if (!_file.open(QIODevice::ReadOnly)) {
-        qWarning() << "Failed to open file:" << filePath;
-        return false;
-    }
-
-    return addItemToZip(p_zip,            // zip archive
-                        _path_in_zip,     // relative path
-                        _file.readAll()); // file data
-}*/
-/*
-bool addFolderToZip(mz_zip_archive *p_zip, const QString &folderPath)
-{
-    const QStringList _items = folderContent(folderPath);
-    return addItemsToZip(p_zip, _items, QFileInfo(folderPath).absolutePath());
-}*/
 
 QStringList folderContent(const QString &folder, bool addRoot)
 {
