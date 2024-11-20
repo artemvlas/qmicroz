@@ -14,6 +14,11 @@
 namespace tools {
 bool createArchive(const QString &zip_path, const QStringList &item_paths, const QString &zip_root)
 {
+    if (item_paths.isEmpty()) {
+        qDebug() << "No input paths. Nothing to zip.";
+        return false;
+    }
+
     // create and open the output zip file
     mz_zip_archive __za;
     memset(&__za, 0, sizeof(__za));
@@ -101,12 +106,12 @@ bool addFileToZip(mz_zip_archive *p_zip, const QString &filePath, const QString 
                         _path_in_zip,     // relative path
                         _file.readAll()); // file data
 }*/
-
+/*
 bool addFolderToZip(mz_zip_archive *p_zip, const QString &folderPath)
 {
     const QStringList _items = folderContent(folderPath);
     return addItemsToZip(p_zip, _items, QFileInfo(folderPath).absolutePath());
-}
+}*/
 
 QStringList folderContent(const QString &folder, bool addRoot)
 {

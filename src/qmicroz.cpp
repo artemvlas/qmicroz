@@ -125,29 +125,7 @@ bool QMicroz::compress_file(const QString &source_path, const QString &zip_path)
         return false;
     }
 
-    qDebug() << "Zipping file:" << source_path;
-    qDebug() << "Output:" << zip_path;
-
-    // TODO merge with tools::createArchive
-    // create and open the output zip file
-    mz_zip_archive __za;
-    memset(&__za, 0, sizeof(__za));
-    if (!mz_zip_writer_init_file(&__za, zip_path.toUtf8().constData(), 0)) {
-        qWarning() << "Failed to create output file:" << zip_path;
-        return false;
-    }
-
-    // process
-    if (!tools::add_item_file(&__za, source_path, QFileInfo(source_path).fileName())) {
-        mz_zip_writer_end(&__za);
-        return false;
-    }
-
-    // cleanup
-    mz_zip_writer_finalize_archive(&__za);
-    mz_zip_writer_end(&__za);
-    qDebug() << "Done";
-    return true;
+    return compress_list({ source_path }, zip_path);
 }
 
 bool QMicroz::compress_folder(const QString &source_path)
@@ -168,11 +146,7 @@ bool QMicroz::compress_folder(const QString &source_path, const QString &zip_pat
         return false;
     }
 
-    qDebug() << "Zipping folder:" << source_path;
-    qDebug() << "Output:" << zip_path;
-
-    const QString _root = QFileInfo(source_path).absolutePath();
-    return tools::createArchive(zip_path, tools::folderContent(source_path), _root);
+    return compress_list({ source_path }, zip_path);
 }
 
 bool QMicroz::compress_list(const QStringList &paths, const QString &zip_path)
@@ -180,16 +154,19 @@ bool QMicroz::compress_list(const QStringList &paths, const QString &zip_path)
     if (paths.isEmpty())
         return false;
 
-    qDebug() << "Zipping:" << paths.size() << "items";
+    const QString _root = QFileInfo(paths.first()).absolutePath();
+    const QString _info = QStringLiteral(u"Zipping: ")
+                          + (paths.size() == 1 ? paths.first() : (QString::number(paths.size()) + QStringLiteral(u" items")));
+    qDebug() << _info;
     qDebug() << "Output:" << zip_path;
 
-    const QString _root = QFileInfo(paths.first()).absolutePath();
-
     // check if all paths are in the same root
-    for (const QString &_path : paths) {
-        if (_root != QFileInfo(_path).absolutePath()) {
-            qDebug() << "ERROR: all items must be in the same folder!";
-            return false;
+    if (paths.size() > 1) {
+        for (const QString &_path : paths) {
+            if (_root != QFileInfo(_path).absolutePath()) {
+                qDebug() << "ERROR: all items must be in the same folder!";
+                return false;
+            }
         }
     }
 

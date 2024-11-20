@@ -35,7 +35,7 @@ bool add_item_file(mz_zip_archive *p_zip, const QString &fs_path, const QString 
 //bool addFileToZip(mz_zip_archive *p_zip, const QString &filePath, const QString &_path_in_zip);
 
 // creates a list of the folder's contents and sends it to ::addItemsToZip()
-bool addFolderToZip(mz_zip_archive *p_zip, const QString &folderPath);
+//bool addFolderToZip(mz_zip_archive *p_zip, const QString &folderPath);
 
 // returns a list of folder content paths; addRoot: the root folder is added to the list
 QStringList folderContent(const QString &folder, bool addRoot = true);
