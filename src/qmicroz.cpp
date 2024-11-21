@@ -33,6 +33,8 @@ bool QMicroz::extract(const QString &zip_path, const QString &output_folder)
         return false;
     }
 
+    const bool is_out_ends_slash = (output_folder.endsWith('/') || output_folder.endsWith('\\'));
+
     // open zip archive
     mz_zip_archive __za;
     memset(&__za, 0, sizeof(__za));
@@ -56,11 +58,14 @@ bool QMicroz::extract(const QString &zip_path, const QString &output_folder)
         qDebug() << "Extracting" << (it + 1) << '/' << _num_items << file_stat.m_filename;
 
         const QString _relpath = QString::fromUtf8(file_stat.m_filename);
-        const QString _outpath = output_folder % tools::s_sep % _relpath;
+        const QString _outpath = is_out_ends_slash ? output_folder + _relpath
+                                                   : output_folder % tools::s_sep % _relpath;
 
         // create new path on the disk
-        if (!_dir.mkpath(QFileInfo(_outpath).path())) {
-            qWarning() << "Failed to create directory for file:" << _outpath;
+        const QString _parent_folder = QFileInfo(_outpath).absolutePath();
+
+        if (!QFileInfo::exists(_parent_folder) && !_dir.mkpath(_parent_folder)) {
+            qWarning() << "Failed to create directory:" << _parent_folder;
             mz_zip_reader_end(&__za);
             return false;
         }
