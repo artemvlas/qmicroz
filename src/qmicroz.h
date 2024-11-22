@@ -13,6 +13,12 @@
 #include "qmicroz_global.h"
 #include <QStringList>
 
+// path inside zip : data
+using BufFileList = QMap<QString, QByteArray>;
+
+// list of files (index : path) contained in the archive
+using ZipContentsList = QMap<int, QString>;
+
 class QMICROZ_EXPORT QMicroz
 {
 public:
@@ -23,6 +29,10 @@ public:
 
     static bool compress_(const QString &path);                                        // archiving a file or folder (path), >> parent dir
     static bool compress_(const QStringList &paths);                                   // paths to files or/and folders
+    static bool compress_(const BufFileList &buf_data, const QString &zip_path);       // creates an archive with files created from the listed paths and data
+    static bool compress_(const QByteArray &data,
+                          const QString &file_name, const QString &zip_path);          // creates an archive (zip_path) containing a file (file_name, data)
+
     static bool compress_file(const QString &source_path);                             // archiving a file, >> parent dir
     static bool compress_file(const QString &source_path, const QString &zip_path);    // >> zip_path
     static bool compress_folder(const QString &source_path);                           // archiving a folder, >> parent dir

@@ -114,6 +114,46 @@ bool QMicroz::compress_(const QStringList &paths)
     return compress_list(paths, _zippath);
 }
 
+bool QMicroz::compress_(const BufFileList &buf_data, const QString &zip_path)
+{
+    qDebug() << "Zipping buffered data to:" << zip_path;
+
+    if (buf_data.isEmpty()) {
+        qDebug() << "No input data. Nothing to zip.";
+        return false;
+    }
+
+    // create and open the output zip file
+    mz_zip_archive __za;
+    memset(&__za, 0, sizeof(__za));
+    if (!mz_zip_writer_init_file(&__za, zip_path.toUtf8().constData(), 0)) {
+        qWarning() << "Failed to create output file:" << zip_path;
+        return false;
+    }
+
+    // process
+    BufFileList::const_iterator it;
+    for (it = buf_data.constBegin(); it != buf_data.constEnd(); ++it) {
+        if (!tools::add_item_data(&__za, it.key(), it.value())) {
+            mz_zip_writer_end(&__za);
+            return false;
+        }
+    }
+
+    // cleanup
+    mz_zip_writer_finalize_archive(&__za);
+    mz_zip_writer_end(&__za);
+    qDebug() << "Done";
+    return true;
+}
+
+bool QMicroz::compress_(const QByteArray &data, const QString &file_name, const QString &zip_path)
+{
+    BufFileList _buf;
+    _buf[file_name] = data;
+    return compress_(_buf, zip_path);
+}
+
 bool QMicroz::compress_file(const QString &source_path)
 {
     QFileInfo __fi(source_path);

@@ -3,9 +3,10 @@ This is a lightweight C++/Qt wrapper around the [miniz](https://github.com/richg
 The code can easily be compiled (or included) and used as a shared (or static) library, which will provide ready-made functions for quick and convenient work with zip archives. There is no need to add additional dependencies like zlib and deal with low-level APIs.
 
 ### Key features:
-* Extraction zip files.
+* Extraction of zip files.
 * Creation of zip archives from files and folders,
     as well as their combinations and lists.
+* Creation of zip archive from buffered data. Compressing the QByteArrays to zip file.
 
 ### How to use:
 Basic functions are available statically.

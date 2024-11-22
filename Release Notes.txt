@@ -1,3 +1,7 @@
+QMicroz v0.3
+* Added the ability to create a zip file from buffered data.
+    QByteArray to Zip-file
+
 QMicroz v0.2
 * Now files are zipped directly, without full buffering in ram.
 * The modification date of files is now saved when archiving.
