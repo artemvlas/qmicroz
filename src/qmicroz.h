@@ -22,6 +22,8 @@ struct BufFile {
     BufFile(const QString &filename, const QByteArray &data)
         : m_name(filename), m_data(data) {}
 
+    explicit operator bool() const { return !m_name.isEmpty(); }
+
     QString m_name;
     QByteArray m_data;
 };

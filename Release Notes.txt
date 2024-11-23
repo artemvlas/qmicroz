@@ -1,6 +1,7 @@
 QMicroz v0.3
 * Added the ability to work with buffered data.
     Creating zip archives from QByteArrays. UnZipping into RAM buffer.
+* Extraction of individual files has been implemented.
 
 QMicroz v0.2
 * Now files are zipped directly, without full buffering in ram.
