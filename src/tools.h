@@ -14,6 +14,7 @@
 
 namespace tools {
 static const QChar s_sep = u'/';
+enum ZaType { ZaReader, ZaWriter };
 
 // creates an archive at the specified path and adds a list of files and folders to it
 // root is the part of the path relative to which paths in the archive will be created
@@ -33,6 +34,12 @@ bool add_item_list(mz_zip_archive *p_zip, const QStringList &items, const QStrin
 
 // returns a list of folder content paths; addRoot: the root folder is added to the list
 QStringList folderContent(const QString &folder, bool addRoot = true);
+
+mz_zip_archive* za_new(const QString &zip_path, ZaType za_type);
+mz_zip_archive_file_stat za_file_stat(mz_zip_archive* pZip, int file_index);
+bool za_close(mz_zip_archive* pZip);
+
+QByteArray extract_data_to_buffer(mz_zip_archive* pZip, int file_index, bool copy_data = true);
 }
 
 #endif // TOOLS_H

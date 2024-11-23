@@ -110,4 +110,72 @@ QStringList folderContent(const QString &folder, bool addRoot)
 
     return _items;
 }
+
+mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
+{
+    // open zip archive
+    mz_zip_archive *_za = new mz_zip_archive();
+    //memset(&__za, 0, sizeof(__za));
+
+    bool result = za_type ? mz_zip_writer_init_file(_za, zip_path.toUtf8().constData(), 0)
+                          : mz_zip_reader_init_file(_za, zip_path.toUtf8().constData(), 0);
+
+    if (!result) {
+        qWarning() << "Failed to open zip file:" << zip_path;
+        delete _za;
+        return nullptr;
+    }
+
+    return _za;
+}
+
+mz_zip_archive_file_stat za_file_stat(mz_zip_archive* pZip, int file_index)
+{
+    mz_zip_archive_file_stat file_stat;
+    if (!mz_zip_reader_file_stat(pZip, file_index, &file_stat)) {
+        qWarning() << "Failed to get file info:" << file_index;
+        //mz_zip_reader_end(&__za);
+        return mz_zip_archive_file_stat();
+    }
+
+    return file_stat;
+}
+
+bool za_close(mz_zip_archive* pZip)
+{
+    if (pZip && mz_zip_end(pZip)) {
+        delete pZip;
+        qDebug() << "Archive closed";
+        return true;
+    }
+
+    qWarning() << "Failed to close archive";
+    return false;
+}
+
+QByteArray extract_data_to_buffer(mz_zip_archive* pZip, int file_index, bool copy_data)
+{
+    size_t __size = 0;
+    char *_c = (char*)mz_zip_reader_extract_to_heap(pZip, file_index, &__size, 0);
+
+    if (_c) {
+        if (copy_data) {
+            // COPY data to QByteArray
+            QByteArray __b(_c, __size);
+
+            // clear extracted from heap
+            delete _c;
+
+            return __b;
+        }
+
+        // Reference to the data in the QByteArray.
+        // Data should be deleted on the caller side: delete _array.constData();
+        return QByteArray::fromRawData(_c, __size);
+    }
+
+    qWarning() << "Failed to extract file:" << file_index;
+    return QByteArray();
+}
+
 }// namespace tools
