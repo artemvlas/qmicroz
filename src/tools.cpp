@@ -40,13 +40,15 @@ bool createArchive(const QString &zip_path, const QStringList &item_paths, const
 
 bool add_item_data(mz_zip_archive *p_zip, const QString &_item_path, const QByteArray &_data)
 {
+    mz_uint _comp_level = (_data.size() > 40) ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION;
+
     qDebug() << "Adding:" << _item_path;
 
     if (!mz_zip_writer_add_mem(p_zip,
                                _item_path.toUtf8().constData(),
                                _data.constData(),
                                _data.size(),
-                               MZ_DEFAULT_COMPRESSION))
+                               _comp_level))
     {
         qWarning() << "Failed to compress file:" << _item_path;
         return false;
@@ -64,11 +66,13 @@ bool add_item_folder(mz_zip_archive *p_zip, const QString &in_path)
 
 bool add_item_file(mz_zip_archive *p_zip, const QString &fs_path, const QString &in_path)
 {
+    mz_uint _comp_level = (QFileInfo(fs_path).size() > 40) ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION;
+
     qDebug() << "Adding:" << in_path;
     return mz_zip_writer_add_file(p_zip,                            // zip archive
                                   in_path.toUtf8().constData(),     // path inside the zip
                                   fs_path.toUtf8().constData(),     // filesystem path
-                                  NULL, 0, MZ_DEFAULT_COMPRESSION);
+                                  NULL, 0, _comp_level);
 }
 
 bool add_item_list(mz_zip_archive *p_zip, const QStringList &items, const QString &rootFolder)
