@@ -6,7 +6,7 @@ The code can easily be compiled (or included) and used as a shared (or static) l
 * Create and extract zip files.
 * Working with files, folders and their lists.
 * Create zip archive from buffered data (QByteArrays).
-* UnZipping files into RAM buffer.
+* UnZipping files into the RAM buffer.
 
 ### How to use:
 Basic functions are available statically.
@@ -16,12 +16,12 @@ For example:
 #### QMicroz::extract("zip_file_path");
 
 // archiving a folder with custom path to zip
-#### QMicroz::compress_folder("source path", "zip_file_path");
+#### QMicroz::compress_folder("source_path", "zip_file_path");
 
 // archiving a list of files and/or folders
 #### QMicroz::compress_({"file_path", "folder_path", "file2_path"});
 
-A complete list of functions is available in the _qmicroz.h_ file.
+A complete list of functions is available in the [qmicroz.h](https://github.com/artemvlas/qmicroz/blob/main/src/qmicroz.h) file.
 
 ### How to link a compiled library to an existing project:
 Trivial example. Windows system, you have ready-made files: _libqmicroz.dll, libqmicroz.dll.a, qmicroz.h, qmicroz_global.h_\
