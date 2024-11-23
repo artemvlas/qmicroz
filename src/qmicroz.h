@@ -26,7 +26,7 @@ struct BufFile {
 
     QString m_name;
     QByteArray m_data;
-};
+}; // struct BufFile
 
 // list of files (index : path) contained in the archive
 using ZipContentsList = QMap<int, QString>;
@@ -66,7 +66,7 @@ public:
                              const QString &file_name, const QString &zip_path);       // creates an archive (zip_path) containing a file (file_name, data)
 
 private:
-    int findIndex(const QString &path);                                                // finds the file index by the specified name
+    int findIndex(const QString &file_name);                                           // finds the file index by the specified name
     const ZipContentsList& updateZipContents();
     bool closeArchive();
 

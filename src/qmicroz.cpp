@@ -90,7 +90,7 @@ const ZipContentsList& QMicroz::zipContents()
 
 BufFileList QMicroz::extract_to_ram() const
 {
-    qDebug() << "Extracting to ram buffer:" << m_zip_path;
+    qDebug() << "Extracting to ram:" << m_zip_path;
 
     BufFileList _res;
 
@@ -131,6 +131,9 @@ BufFile QMicroz::extract_to_ram(const QString &file_name)
 
 BufFile QMicroz::extract_to_ram(const int file_index) const
 {
+    if (file_index == -1)
+        return BufFile();
+
     qDebug() << "Extracting to ram buffer:" << m_zip_path;
 
     BufFile _res;
@@ -175,6 +178,9 @@ bool QMicroz::extractFile(const QString &file_path, const QString &output_folder
 
 bool QMicroz::extractFile(const int file_index, const QString &output_folder) const
 {
+    if (file_index == -1)
+        return false;
+
     qDebug() << "Extract:" << m_zip_path;
     qDebug() << "Output folder:" << output_folder;
 
@@ -445,16 +451,17 @@ bool QMicroz::compress_buf(const QByteArray &data, const QString &file_name, con
     return compress_buf(_buf, zip_path);
 }
 
-int QMicroz::findIndex(const QString &path)
+int QMicroz::findIndex(const QString &file_name)
 {
     if (m_zip_contents.isEmpty())
         updateZipContents();
 
     ZipContentsList::const_iterator it;
     for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
-        if (path == it.value())
+        if (file_name == it.value())
             return it.key();
     }
 
+    qDebug() << "Index not found:" << file_name;
     return -1;
 }
