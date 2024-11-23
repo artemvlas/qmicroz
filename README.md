@@ -21,7 +21,7 @@ For example:
 // archiving a list of files and/or folders
 #### QMicroz::compress_({"file_path", "folder_path", "file2_path"});
 
-A complete list of functions is available in the [qmicroz.h](https://github.com/artemvlas/qmicroz/blob/main/src/qmicroz.h) file.
+A complete list of functions is available in the [qmicroz.h](src/qmicroz.h) file.
 
 ### How to link a compiled library to an existing project:
 Trivial example. Windows system, you have ready-made files: _libqmicroz.dll, libqmicroz.dll.a, qmicroz.h, qmicroz_global.h_\
