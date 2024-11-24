@@ -4,10 +4,10 @@ The code can easily be compiled (or included) and used as a shared (or static) l
 
 ### Key features:
 * Create and extract zip files.\
-    Working with files, folders and their lists.
+    _Working with files, folders and their lists._
 * Create and extract zip archives from buffered data (QByteArrays).\
-    UnZipping files into the RAM buffer.\
-    Extraction buffered zip to disk.
+    _UnZipping files into the RAM buffer._\
+    _Extraction buffered zip to disk._
 
 ### How to use:
 Basic functions are available statically.
