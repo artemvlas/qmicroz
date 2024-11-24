@@ -213,4 +213,41 @@ QByteArray extract_to_buffer(mz_zip_archive* pZip, int file_index, bool copy_dat
     return QByteArray();
 }
 
+bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder)
+{
+    // extracting...
+    bool is_success = true;
+    const bool is_out_ends_slash = (output_folder.endsWith('/') || output_folder.endsWith('\\'));
+    const mz_uint _num_items = mz_zip_reader_get_num_files(pZip);
+
+    for (uint it = 0; it < _num_items; ++it) {
+        const QString _filename = za_item_name(pZip, it);
+
+        qDebug() << "Extracting" << (it + 1) << '/' << _num_items << _filename;
+
+        const QString _outpath = is_out_ends_slash ? output_folder + _filename
+                                                   : output_folder % s_sep % _filename;
+
+        // create new path on the disk
+        const QString _parent_folder = QFileInfo(_outpath).absolutePath();
+        if (!createFolder(_parent_folder)) {
+            is_success = false;
+            break;
+        }
+
+        // subfolder, no data to extract
+        if (_filename.endsWith(s_sep))
+            continue;
+
+        // extract file
+        if (!extract_to_file(pZip, it, _outpath)) {
+            is_success = false;
+            break;
+        }
+    }
+
+    qDebug() << (is_success ? "Unzip complete." : "Unzip failed.");
+    return is_success;
+}
+
 }// namespace tools

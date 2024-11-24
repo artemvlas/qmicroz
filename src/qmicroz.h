@@ -35,19 +35,25 @@ class QMICROZ_EXPORT QMicroz
 {
 public:
     QMicroz();
-    QMicroz(const QString &zip_path);
+    explicit QMicroz(const char *zip_path);                                            // to avoid ambiguity
+    explicit QMicroz(const QString &zip_path);                                         // path to existing zip file
+    explicit QMicroz(const QByteArray &buffered_zip);                                  // existing zip archive buffered in memory
     ~QMicroz();
-    explicit operator bool() const { return (bool)m_archive; }                         // checks whether the archive is setted
 
-    bool setZipFile(const QString &zip_path);                                          // sets and opens a zip archive for the current object
-    const ZipContentsList& zipContents();                                              // returns a list of files contained in a given archive
-    bool extractAll(const QString &output_folder) const;                               // extracts the archive into the specified folder
-    bool extractFile(const QString &file_path, const QString &output_folder);          // extracts the specified files
-    bool extractFile(const int file_index, const QString &output_folder) const;        // by index
+    explicit operator bool() const { return (bool)m_archive; }                         // checks whether the archive is setted
+    const ZipContentsList& contents();                                                 // returns a list of files contained in a given archive
+
+    bool setZipFile(const QString &zip_path);                                          // sets and opens the zip for the current object
+    bool setZipBuffer(const QByteArray &buffered_zip);                                 // sets a buffered in memory zip archive
+    void setOutputFolder(const QString &output_folder);                                // path to the output folder to extract
+
+    bool extractAll();                                                                 // extracts the archive into the output folder (or the parent one)
+    bool extractFile(int file_index);                                                  // extracts the file with index to disk
+    bool extractFileByName(const QString &file_name);                                  // find by file_name and extracts if any
 
     BufFileList extract_to_ram() const;                                                // extracts the archive into the RAM buffer
-    BufFile     extract_to_ram(const QString &file_name);                              // extracts selected file with name
-    BufFile     extract_to_ram(const int file_index) const;                            // with the specified index
+    BufFile extract_to_ram(int file_index) const;                                      // extracts the selected index
+    BufFile extract_file_to_ram(const QString &file_name);                             // find by file_name and extracts if any
 
     // STATIC functions
     static bool extract(const QString &zip_path);                                      // extracting the zip archive into the parent dir
@@ -70,11 +76,13 @@ private:
     int findIndex(const QString &file_name);                                           // finds the file index by the specified name
     const ZipContentsList& updateZipContents();
     bool closeArchive();
+    const QString& outputFolder();
 
     // the void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;
 
     QString m_zip_path;
+    QString m_output_folder;
     ZipContentsList m_zip_contents;
 
 }; // class QMicroz

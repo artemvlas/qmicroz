@@ -50,6 +50,8 @@ QString za_item_name(mz_zip_archive* pZip, int file_index);
 bool extract_to_file(mz_zip_archive* pZip, int file_index, const QString &outpath);
 
 QByteArray extract_to_buffer(mz_zip_archive* pZip, int file_index, bool copy_data = true);
+
+bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder);
 }
 
 #endif // TOOLS_H
