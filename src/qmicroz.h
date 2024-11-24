@@ -73,17 +73,17 @@ public:
                              const QString &file_name, const QString &zip_path);       // creates an archive (zip_path) containing a file (file_name, data)
 
 private:
+    const ZipContentsList& updateZipContents();                                        // updates the list of current archive contents
+    const QString& outputFolder();                                                     // returns the current folder for extracting the archive
     int findIndex(const QString &file_name);                                           // finds the file index by the specified name
-    const ZipContentsList& updateZipContents();
-    bool closeArchive();
-    const QString& outputFolder();
+    bool closeArchive();                                                               // closes the currently setted zip and resets the pointer
 
     // the void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;
 
-    QString m_zip_path;
-    QString m_output_folder;
-    ZipContentsList m_zip_contents;
+    QString m_zip_path;                                                                // path to the current zip file
+    QString m_output_folder;                                                           // folder for extracting the archive
+    ZipContentsList m_zip_contents;                                                    // list of current contents { index : filename (or path) }
 
 }; // class QMicroz
 
