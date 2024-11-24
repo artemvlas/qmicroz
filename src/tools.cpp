@@ -20,22 +20,23 @@ bool createArchive(const QString &zip_path, const QStringList &item_paths, const
     }
 
     // create and open the output zip file
-    mz_zip_archive __za;
-    memset(&__za, 0, sizeof(__za));
-    if (!mz_zip_writer_init_file(&__za, zip_path.toUtf8().constData(), 0)) {
-        qWarning() << "Failed to create output file:" << zip_path;
+    mz_zip_archive *_za = za_new(zip_path, ZaWriter);
+    if (!_za) {
         return false;
     }
 
     // process
-    if (!add_item_list(&__za, item_paths, zip_root))
-        return false;
+    const bool _res = add_item_list(_za, item_paths, zip_root);
+
+    if (_res) {
+        mz_zip_writer_finalize_archive(_za);
+        qDebug() << "Done";
+    }
 
     // cleanup
-    mz_zip_writer_finalize_archive(&__za);
-    mz_zip_writer_end(&__za);
-    qDebug() << "Done";
-    return true;
+    za_close(_za);
+
+    return _res;
 }
 
 bool add_item_data(mz_zip_archive *p_zip, const QString &_item_path, const QByteArray &_data)
@@ -60,7 +61,7 @@ bool add_item_data(mz_zip_archive *p_zip, const QString &_item_path, const QByte
 bool add_item_folder(mz_zip_archive *p_zip, const QString &in_path)
 {
     return add_item_data(p_zip,
-                         in_path.endsWith('/') ? in_path : in_path + '/',
+                         in_path.endsWith(s_sep) ? in_path : in_path + s_sep,
                          QByteArray());
 }
 
@@ -89,7 +90,7 @@ bool add_item_list(mz_zip_archive *p_zip, const QStringList &items, const QStrin
             || (__fi.isDir() && !add_item_folder(p_zip, _relPath)))  // subfolder
         {
             // adding failed
-            mz_zip_writer_end(p_zip);
+            // mz_zip_writer_end(p_zip);
             return false;
         }
     }
@@ -115,6 +116,18 @@ QStringList folderContent(const QString &folder, bool addRoot)
     return _items;
 }
 
+bool createFolder(const QString &path)
+{
+    if (QFileInfo::exists(path)
+        || QDir().mkpath(path))
+    {
+        return true;
+    }
+
+    qWarning() << "Failed to create directory:" << path;
+    return false;
+}
+
 mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
 {
     // open zip archive
@@ -138,7 +151,6 @@ mz_zip_archive_file_stat za_file_stat(mz_zip_archive* pZip, int file_index)
     mz_zip_archive_file_stat file_stat;
     if (!mz_zip_reader_file_stat(pZip, file_index, &file_stat)) {
         qWarning() << "Failed to get file info:" << file_index;
-        //mz_zip_reader_end(&__za);
         return mz_zip_archive_file_stat();
     }
 
@@ -157,7 +169,26 @@ bool za_close(mz_zip_archive* pZip)
     return false;
 }
 
-QByteArray extract_data_to_buffer(mz_zip_archive* pZip, int file_index, bool copy_data)
+QString za_item_name(mz_zip_archive* pZip, int file_index)
+{
+    return za_file_stat(pZip, file_index).m_filename;
+}
+
+bool extract_to_file(mz_zip_archive* pZip, int file_index, const QString &outpath)
+{
+    if (mz_zip_reader_extract_to_file(pZip,
+                                      file_index,
+                                      outpath.toUtf8().constData(),
+                                      0))
+    {
+        return true;
+    }
+
+    qWarning() << "Failed to extract file:" << file_index;
+    return false;
+}
+
+QByteArray extract_to_buffer(mz_zip_archive* pZip, int file_index, bool copy_data)
 {
     size_t __size = 0;
     char *_c = (char*)mz_zip_reader_extract_to_heap(pZip, file_index, &__size, 0);

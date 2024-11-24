@@ -37,6 +37,7 @@ public:
     QMicroz();
     QMicroz(const QString &zip_path);
     ~QMicroz();
+    explicit operator bool() const { return (bool)m_archive; }                         // checks whether the archive is setted
 
     bool setZipFile(const QString &zip_path);                                          // sets and opens a zip archive for the current object
     const ZipContentsList& zipContents();                                              // returns a list of files contained in a given archive
