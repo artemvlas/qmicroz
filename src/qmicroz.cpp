@@ -83,26 +83,26 @@ void QMicroz::setOutputFolder(const QString &output_folder)
 const QString& QMicroz::outputFolder()
 {
     if (m_output_folder.isEmpty()) {
-        // buffered zip with no m_output_folder setted
-        if (m_zip_path.isEmpty())
-            qDebug() << "No output folder setted";
-        else
+        if (m_zip_path.isEmpty()) {
+            // buffered zip with no m_output_folder setted
+            qWarning() << "No output folder setted";
+        }
+        else {
+            // zip file's parent folder
             m_output_folder = QFileInfo(m_zip_path).absolutePath();
+        }
     }
 
     return m_output_folder;
 }
 
-bool QMicroz::closeArchive()
+void QMicroz::closeArchive()
 {
     if (m_archive) {
         mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
         tools::za_close(_za);
         m_archive = nullptr;
-        return true;
     }
-
-    return false;
 }
 
 const ZipContentsList& QMicroz::updateZipContents()
@@ -118,7 +118,7 @@ const ZipContentsList& QMicroz::updateZipContents()
     const mz_uint _num_items = mz_zip_reader_get_num_files(_za);
 
     for (uint it = 0; it < _num_items; ++it) {
-        const QString _filename = tools::za_file_stat(_za, it).m_filename;
+        const QString _filename = tools::za_item_name(_za, it);
         if (_filename.isEmpty()) {
             break;
         }
@@ -168,7 +168,7 @@ bool QMicroz::extractFile(int file_index)
 
     const QString &output_folder = outputFolder();
 
-    qDebug() << "Extract:" << m_zip_path;
+    qDebug() << "Extract:" << file_index << "from:" << m_zip_path;
     qDebug() << "Output folder:" << output_folder;
 
     // create output folder if it doesn't exist
@@ -185,9 +185,8 @@ bool QMicroz::extractFile(int file_index)
     }
 
     qDebug() << "Extracting:" << _filename;
-    const bool is_out_ends_slash = (output_folder.endsWith('/') || output_folder.endsWith('\\'));
-    const QString _outpath = is_out_ends_slash ? output_folder + _filename
-                                               : output_folder % tools::s_sep % _filename;
+    const QString _outpath = tools::endsWithSlash(output_folder) ? output_folder + _filename
+                                                                 : output_folder % tools::s_sep % _filename;
 
     // create new path on the disk
     const QString _parent_folder = QFileInfo(_outpath).absolutePath();
@@ -222,7 +221,7 @@ BufFileList QMicroz::extract_to_ram() const
         return _res;
     }
 
-    qDebug() << "Extracting to ram:" << (m_zip_path.isEmpty() ? "buffered zip" : m_zip_path);
+    qDebug() << "Extracting to RAM:" << (m_zip_path.isEmpty() ? "buffered zip" : m_zip_path);
 
     mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
 
@@ -236,10 +235,10 @@ BufFileList QMicroz::extract_to_ram() const
         }
 
         // subfolder, no data to extract
-        if (_filename.endsWith('/'))
+        if (_filename.endsWith(tools::s_sep))
             continue;
 
-        qDebug() << "Extracting" << (it + 1) << '/' << _num_items << _filename;
+        qDebug() << "Extracting:" << (it + 1) << '/' << _num_items << _filename;
 
         // extract file
         const QByteArray _data = tools::extract_to_buffer(_za, it);
@@ -263,7 +262,7 @@ BufFile QMicroz::extract_to_ram(int file_index) const
     if (file_index == -1)
         return _res;
 
-    qDebug() << "Extracting to ram:" << (m_zip_path.isEmpty() ? "buffered zip" : m_zip_path);
+    qDebug() << "Extracting to RAM:" << (m_zip_path.isEmpty() ? "buffered zip" : m_zip_path);
 
     mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
 
@@ -272,7 +271,7 @@ BufFile QMicroz::extract_to_ram(int file_index) const
         return _res;
 
     // subfolder, no data to extract
-    if (_filename.endsWith('/')) {
+    if (_filename.endsWith(tools::s_sep)) {
         qDebug() << "Subfolder, no data to extract:" << _filename;
         return _res;
     }
@@ -332,10 +331,12 @@ bool QMicroz::compress_(const QString &path)
 {
     QFileInfo __fi(path);
 
-    if (__fi.isFile())
+    if (__fi.isFile()) {
         return compress_file(path);
-    else if (__fi.isDir())
+    }
+    else if (__fi.isDir()) {
         return compress_folder(path);
+    }
     else {
         qDebug() << "QMicroz::compress | WRONG path:" << path;
         return false;
@@ -377,9 +378,9 @@ bool QMicroz::compress_folder(const QString &source_path)
 {
     QFileInfo __fi(source_path);
     const QString _file_name = __fi.fileName() + QStringLiteral(u".zip");
-    const QString _out_path = __fi.absolutePath()
-                              % tools::s_sep
-                              % _file_name;
+    const QString _parent_folder = __fi.absolutePath();
+    const QString _out_path = tools::endsWithSlash(_parent_folder) ? _parent_folder + _file_name
+                                                                   : _parent_folder % tools::s_sep % _file_name;
 
     return compress_folder(source_path, _out_path);
 }
@@ -409,7 +410,7 @@ bool QMicroz::compress_list(const QStringList &paths, const QString &zip_path)
     if (paths.size() > 1) {
         for (const QString &_path : paths) {
             if (_root != QFileInfo(_path).absolutePath()) {
-                qDebug() << "ERROR: all items must be in the same folder!";
+                qWarning() << "ERROR: all items must be in the same folder!";
                 return false;
             }
         }

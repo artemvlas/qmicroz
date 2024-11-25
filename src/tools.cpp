@@ -12,6 +12,52 @@
 #include <QStringBuilder>
 
 namespace tools {
+mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
+{
+    // open zip archive
+    mz_zip_archive *_za = new mz_zip_archive();
+    //memset(&__za, 0, sizeof(__za));
+
+    bool result = za_type ? mz_zip_writer_init_file(_za, zip_path.toUtf8().constData(), 0)
+                          : mz_zip_reader_init_file(_za, zip_path.toUtf8().constData(), 0);
+
+    if (!result) {
+        qWarning() << "Failed to open zip file:" << zip_path;
+        delete _za;
+        return nullptr;
+    }
+
+    return _za;
+}
+
+mz_zip_archive_file_stat za_file_stat(mz_zip_archive* pZip, int file_index)
+{
+    mz_zip_archive_file_stat file_stat;
+    if (mz_zip_reader_file_stat(pZip, file_index, &file_stat)) {
+        return file_stat;
+    }
+
+    qWarning() << "Failed to get file info:" << file_index;
+    return mz_zip_archive_file_stat();
+}
+
+bool za_close(mz_zip_archive* pZip)
+{
+    if (pZip && mz_zip_end(pZip)) {
+        delete pZip;
+        qDebug() << "Archive closed";
+        return true;
+    }
+
+    qWarning() << "Failed to close archive";
+    return false;
+}
+
+QString za_item_name(mz_zip_archive* pZip, int file_index)
+{
+    return za_file_stat(pZip, file_index).m_filename;
+}
+
 bool createArchive(const QString &zip_path, const QStringList &item_paths, const QString &zip_root)
 {
     if (item_paths.isEmpty()) {
@@ -41,15 +87,13 @@ bool createArchive(const QString &zip_path, const QStringList &item_paths, const
 
 bool add_item_data(mz_zip_archive *p_zip, const QString &_item_path, const QByteArray &_data)
 {
-    mz_uint _comp_level = (_data.size() > 40) ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION;
-
     qDebug() << "Adding:" << _item_path;
 
     if (!mz_zip_writer_add_mem(p_zip,
                                _item_path.toUtf8().constData(),
                                _data.constData(),
                                _data.size(),
-                               _comp_level))
+                               compressLevel(_data.size())))
     {
         qWarning() << "Failed to compress file:" << _item_path;
         return false;
@@ -67,13 +111,12 @@ bool add_item_folder(mz_zip_archive *p_zip, const QString &in_path)
 
 bool add_item_file(mz_zip_archive *p_zip, const QString &fs_path, const QString &in_path)
 {
-    mz_uint _comp_level = (QFileInfo(fs_path).size() > 40) ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION;
-
     qDebug() << "Adding:" << in_path;
     return mz_zip_writer_add_file(p_zip,                            // zip archive
                                   in_path.toUtf8().constData(),     // path inside the zip
                                   fs_path.toUtf8().constData(),     // filesystem path
-                                  NULL, 0, _comp_level);
+                                  NULL, 0,
+                                  compressLevel(QFileInfo(fs_path).size()));
 }
 
 bool add_item_list(mz_zip_archive *p_zip, const QStringList &items, const QString &rootFolder)
@@ -96,82 +139,6 @@ bool add_item_list(mz_zip_archive *p_zip, const QStringList &items, const QStrin
     }
 
     return true;
-}
-
-QStringList folderContent(const QString &folder, bool addRoot)
-{
-    QStringList _items;
-
-    if (addRoot) // add root folder
-        _items << folder;
-
-    QDirIterator it(folder,
-                    QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::NoSymLinks | QDir::Hidden,
-                    QDirIterator::Subdirectories);
-
-    while (it.hasNext()) {
-        _items << it.next();
-    }
-
-    return _items;
-}
-
-bool createFolder(const QString &path)
-{
-    if (QFileInfo::exists(path)
-        || QDir().mkpath(path))
-    {
-        return true;
-    }
-
-    qWarning() << "Failed to create directory:" << path;
-    return false;
-}
-
-mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
-{
-    // open zip archive
-    mz_zip_archive *_za = new mz_zip_archive();
-    //memset(&__za, 0, sizeof(__za));
-
-    bool result = za_type ? mz_zip_writer_init_file(_za, zip_path.toUtf8().constData(), 0)
-                          : mz_zip_reader_init_file(_za, zip_path.toUtf8().constData(), 0);
-
-    if (!result) {
-        qWarning() << "Failed to open zip file:" << zip_path;
-        delete _za;
-        return nullptr;
-    }
-
-    return _za;
-}
-
-mz_zip_archive_file_stat za_file_stat(mz_zip_archive* pZip, int file_index)
-{
-    mz_zip_archive_file_stat file_stat;
-    if (!mz_zip_reader_file_stat(pZip, file_index, &file_stat)) {
-        qWarning() << "Failed to get file info:" << file_index;
-        return mz_zip_archive_file_stat();
-    }
-
-    return file_stat;
-}
-
-bool za_close(mz_zip_archive* pZip)
-{
-    if (pZip && mz_zip_end(pZip)) {
-        delete pZip;
-        qDebug() << "Archive closed";
-        return true;
-    }
-
-    qWarning() << "Failed to close archive";
-    return false;
-}
-
-QString za_item_name(mz_zip_archive* pZip, int file_index)
-{
-    return za_file_stat(pZip, file_index).m_filename;
 }
 
 bool extract_to_file(mz_zip_archive* pZip, int file_index, const QString &outpath)
@@ -217,13 +184,13 @@ bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder)
 {
     // extracting...
     bool is_success = true;
-    const bool is_out_ends_slash = (output_folder.endsWith('/') || output_folder.endsWith('\\'));
+    const bool is_out_ends_slash = endsWithSlash(output_folder);
     const mz_uint _num_items = mz_zip_reader_get_num_files(pZip);
 
     for (uint it = 0; it < _num_items; ++it) {
         const QString _filename = za_item_name(pZip, it);
 
-        qDebug() << "Extracting" << (it + 1) << '/' << _num_items << _filename;
+        qDebug() << "Extracting:" << (it + 1) << '/' << _num_items << _filename;
 
         const QString _outpath = is_out_ends_slash ? output_folder + _filename
                                                    : output_folder % s_sep % _filename;
@@ -248,6 +215,46 @@ bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder)
 
     qDebug() << (is_success ? "Unzip complete." : "Unzip failed.");
     return is_success;
+}
+
+QStringList folderContent(const QString &folder, bool addRoot)
+{
+    QStringList _items;
+
+    if (addRoot) // add root folder
+        _items << folder;
+
+    QDirIterator it(folder,
+                    QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::NoSymLinks | QDir::Hidden,
+                    QDirIterator::Subdirectories);
+
+    while (it.hasNext()) {
+        _items << it.next();
+    }
+
+    return _items;
+}
+
+bool createFolder(const QString &path)
+{
+    if (QFileInfo::exists(path)
+        || QDir().mkpath(path))
+    {
+        return true;
+    }
+
+    qWarning() << "Failed to create directory:" << path;
+    return false;
+}
+
+bool endsWithSlash(const QString &path)
+{
+    return (path.endsWith('/') || path.endsWith('\\'));
+}
+
+mz_uint compressLevel(qint64 data_size)
+{
+    return (data_size > 40) ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION;
 }
 
 }// namespace tools

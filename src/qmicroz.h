@@ -45,7 +45,8 @@ public:
 
     bool setZipFile(const QString &zip_path);                                          // sets and opens the zip for the current object
     bool setZipBuffer(const QByteArray &buffered_zip);                                 // sets a buffered in memory zip archive
-    void setOutputFolder(const QString &output_folder);                                // path to the output folder to extract
+    void setOutputFolder(const QString &output_folder);                                // path to the folder where to place the extracted files
+    void closeArchive();                                                               // closes the currently setted zip and resets the pointer
 
     bool extractAll();                                                                 // extracts the archive into the output folder (or the parent one)
     bool extractFile(int file_index);                                                  // extracts the file with index to disk
@@ -56,7 +57,7 @@ public:
     BufFile extract_file_to_ram(const QString &file_name);                             // find by file_name and extracts if any
 
     // STATIC functions
-    static bool extract(const QString &zip_path);                                      // extracting the zip archive into the parent dir
+    static bool extract(const QString &zip_path);                                      // extracting the zip into the parent dir
     static bool extract(const QString &zip_path, const QString &output_folder);        // to output_folder
 
     static bool compress_(const QString &path);                                        // archiving a file or folder (path), >> parent dir
@@ -76,7 +77,6 @@ private:
     const ZipContentsList& updateZipContents();                                        // updates the list of current archive contents
     const QString& outputFolder();                                                     // returns the current folder for extracting the archive
     int findIndex(const QString &file_name);                                           // finds the file index by the specified name
-    bool closeArchive();                                                               // closes the currently setted zip and resets the pointer
 
     // the void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;
