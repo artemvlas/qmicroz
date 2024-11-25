@@ -479,9 +479,19 @@ int QMicroz::findIndex(const QString &file_name)
         updateZipContents();
 
     ZipContentsList::const_iterator it;
+
+    // full path matching
     for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
         if (file_name == it.value())
             return it.key();
+    }
+
+    // deep search, matching only the name
+    if (!file_name.contains(tools::s_sep)) {
+        for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
+            if (file_name == QFileInfo(it.value()).fileName())
+                return it.key();
+        }
     }
 
     qDebug() << "Index not found:" << file_name;
