@@ -10,7 +10,8 @@
 #include "tools.h"
 #include <QDir>
 #include <QDebug>
-#include <QStringBuilder>
+
+const QString QMicroz::s_zip_ext = QStringLiteral(u".zip");
 
 QMicroz::QMicroz() {}
 
@@ -156,7 +157,8 @@ bool QMicroz::extractAll()
     return tools::extract_all_to_disk(static_cast<mz_zip_archive*>(m_archive), outputFolder());
 }
 
-bool QMicroz::extractFile(int file_index)
+// !recreate_path >> place in the root of the output folder
+bool QMicroz::extractFile(int file_index, bool recreate_path)
 {
     if (!m_archive) {
         qDebug() << "No zip archive setted";
@@ -185,8 +187,8 @@ bool QMicroz::extractFile(int file_index)
     }
 
     qDebug() << "Extracting:" << _filename;
-    const QString _outpath = tools::endsWithSlash(output_folder) ? output_folder + _filename
-                                                                 : output_folder % tools::s_sep % _filename;
+    const QString _outpath = tools::joinPath(output_folder,
+                                             recreate_path ? _filename : QFileInfo(_filename).fileName());
 
     // create new path on the disk
     const QString _parent_folder = QFileInfo(_outpath).absolutePath();
@@ -207,9 +209,9 @@ bool QMicroz::extractFile(int file_index)
     return true;
 }
 
-bool QMicroz::extractFileByName(const QString &file_name)
+bool QMicroz::extractFileByName(const QString &file_name, bool recreate_path)
 {
-    return extractFile(findIndex(file_name));
+    return extractFile(findIndex(file_name), recreate_path);
 }
 
 BufFileList QMicroz::extract_to_ram() const
@@ -349,8 +351,8 @@ bool QMicroz::compress_(const QStringList &paths)
         return false;
 
     const QString _rootfolder = QFileInfo(paths.first()).absolutePath();
-    const QString _zipname = QFileInfo(_rootfolder).fileName() + QStringLiteral(u".zip");
-    const QString _zippath = _rootfolder % tools::s_sep % _zipname;
+    const QString _zipname = QFileInfo(_rootfolder).fileName() + s_zip_ext;
+    const QString _zippath = tools::joinPath(_rootfolder, _zipname);
 
     return compress_list(paths, _zippath);
 }
@@ -358,8 +360,8 @@ bool QMicroz::compress_(const QStringList &paths)
 bool QMicroz::compress_file(const QString &source_path)
 {
     QFileInfo __fi(source_path);
-    const QString _zip_name = __fi.completeBaseName() + QStringLiteral(u".zip");
-    const QString _out_path = __fi.absolutePath() % tools::s_sep % _zip_name;
+    const QString _zip_name = __fi.completeBaseName() + s_zip_ext;
+    const QString _out_path = tools::joinPath(__fi.absolutePath(), _zip_name);
 
     return compress_file(source_path, _out_path);
 }
@@ -377,10 +379,9 @@ bool QMicroz::compress_file(const QString &source_path, const QString &zip_path)
 bool QMicroz::compress_folder(const QString &source_path)
 {
     QFileInfo __fi(source_path);
-    const QString _file_name = __fi.fileName() + QStringLiteral(u".zip");
+    const QString _file_name = __fi.fileName() + s_zip_ext;
     const QString _parent_folder = __fi.absolutePath();
-    const QString _out_path = tools::endsWithSlash(_parent_folder) ? _parent_folder + _file_name
-                                                                   : _parent_folder % tools::s_sep % _file_name;
+    const QString _out_path = tools::joinPath(_parent_folder, _file_name);
 
     return compress_folder(source_path, _out_path);
 }
@@ -489,8 +490,11 @@ int QMicroz::findIndex(const QString &file_name)
     // deep search, matching only the name
     if (!file_name.contains(tools::s_sep)) {
         for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
-            if (file_name == QFileInfo(it.value()).fileName())
+            if (!it.value().endsWith('/') // if not a subfolder
+                && file_name == QFileInfo(it.value()).fileName())
+            {
                 return it.key();
+            }
         }
     }
 

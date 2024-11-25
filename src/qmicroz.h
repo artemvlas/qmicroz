@@ -49,8 +49,8 @@ public:
     void closeArchive();                                                               // closes the currently setted zip and resets the pointer
 
     bool extractAll();                                                                 // extracts the archive into the output folder (or the parent one)
-    bool extractFile(int file_index);                                                  // extracts the file with index to disk
-    bool extractFileByName(const QString &file_name);                                  // find by file_name and extracts if any
+    bool extractFile(int file_index, bool recreate_path = true);                       // extracts the file with index to disk
+    bool extractFileByName(const QString &file_name, bool recreate_path = true);       // find by file_name and extracts if any
 
     BufFileList extract_to_ram() const;                                                // extracts the archive into the RAM buffer
     BufFile extract_to_ram(int file_index) const;                                      // extracts the selected index
@@ -84,6 +84,7 @@ private:
     QString m_zip_path;                                                                // path to the current zip file
     QString m_output_folder;                                                           // folder for extracting the archive
     ZipContentsList m_zip_contents;                                                    // list of current contents { index : filename (or path) }
+    static const QString s_zip_ext;
 
 }; // class QMicroz
 

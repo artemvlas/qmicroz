@@ -252,6 +252,12 @@ bool endsWithSlash(const QString &path)
     return (path.endsWith('/') || path.endsWith('\\'));
 }
 
+QString joinPath(const QString &abs_path, const QString &rel_path)
+{
+    return endsWithSlash(abs_path) ? abs_path + rel_path
+                                   : abs_path % s_sep % rel_path;
+}
+
 mz_uint compressLevel(qint64 data_size)
 {
     return (data_size > 40) ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION;

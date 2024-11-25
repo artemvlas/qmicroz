@@ -63,6 +63,9 @@ bool createFolder(const QString &path);
 // does the path string end with a slash
 bool endsWithSlash(const QString &path);
 
+// connects two parts of a path, checking for the presence of a separator
+QString joinPath(const QString &abs_path, const QString &rel_path);
+
 // returns "no compression" for micro files, for others by default
 mz_uint compressLevel(qint64 data_size);
 }
