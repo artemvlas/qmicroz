@@ -49,12 +49,12 @@ public:
     void closeArchive();                                                               // closes the currently setted zip and resets the pointer
 
     bool extractAll();                                                                 // extracts the archive into the output folder (or the parent one)
-    bool extractFile(int file_index, bool recreate_path = true);                       // extracts the file with index to disk
-    bool extractFileByName(const QString &file_name, bool recreate_path = true);       // find by file_name and extracts if any
+    bool extractIndex(int file_index, bool recreate_path = true);                      // extracts the file with index to disk
+    bool extractFile(const QString &file_name, bool recreate_path = true);             // find by file_name and extracts if any
 
     BufFileList extract_to_ram() const;                                                // extracts the archive into the RAM buffer
-    BufFile extract_to_ram(int file_index) const;                                      // extracts the selected index
-    BufFile extract_file_to_ram(const QString &file_name);                             // find by file_name and extracts if any
+    BufFile     extract_to_ram(int file_index) const;                                  // extracts the selected index
+    BufFile     extract_to_ram_file(const QString &file_name);                         // find by file_name and extracts if any
 
     // STATIC functions
     static bool extract(const QString &zip_path);                                      // extracting the zip into the parent dir

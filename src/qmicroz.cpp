@@ -158,7 +158,7 @@ bool QMicroz::extractAll()
 }
 
 // !recreate_path >> place in the root of the output folder
-bool QMicroz::extractFile(int file_index, bool recreate_path)
+bool QMicroz::extractIndex(int file_index, bool recreate_path)
 {
     if (!m_archive) {
         qDebug() << "No zip archive setted";
@@ -181,6 +181,7 @@ bool QMicroz::extractFile(int file_index, bool recreate_path)
     mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
 
     // extracting...
+    // the name is also a relative path inside the archive
     const QString _filename = tools::za_item_name(_za, file_index);
     if (_filename.isEmpty()) {
         return false;
@@ -209,9 +210,9 @@ bool QMicroz::extractFile(int file_index, bool recreate_path)
     return true;
 }
 
-bool QMicroz::extractFileByName(const QString &file_name, bool recreate_path)
+bool QMicroz::extractFile(const QString &file_name, bool recreate_path)
 {
-    return extractFile(findIndex(file_name), recreate_path);
+    return extractIndex(findIndex(file_name), recreate_path);
 }
 
 BufFileList QMicroz::extract_to_ram() const
@@ -293,7 +294,7 @@ BufFile QMicroz::extract_to_ram(int file_index) const
     return _res;
 }
 
-BufFile QMicroz::extract_file_to_ram(const QString &file_name)
+BufFile QMicroz::extract_to_ram_file(const QString &file_name)
 {
     return extract_to_ram(findIndex(file_name));
 }
