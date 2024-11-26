@@ -5,27 +5,38 @@ The code can easily be compiled (or included) and used as a shared (or static) l
 ### Key features:
 * Create and extract zip files.\
     _Working with files, folders and their lists._
-* Create and extract zip archives from buffered data (QByteArrays).\
-    _UnZipping files into the RAM buffer._\
-    _Extraction buffered zip to disk._
+* Create/extract archives from/to **buffered data.**\
+    _UnZip files into the RAM buffer.\
+     Make a zip file from QByteArray (or a list of them).\
+     Extract the buffered zip to disk..._
 
+---
 ### How to use:
 Basic functions are available statically.
 For example:
 
-// extracting the zip archive into the parent folder
-#### QMicroz::extract("zip_file_path");
+#### Extracting the archive to the parent folder
+    QMicroz::extract("zip_file_path");
 
-// archiving a folder with custom path to zip
-#### QMicroz::compress_folder("source_path", "zip_file_path");
+#### Archiving a folder with custom path to zip
+    QMicroz::compress_folder("source_path", "zip_file_path");
 
-// archiving a list of files and/or folders
-#### QMicroz::compress_({"file_path", "folder_path", "file2_path"});
+#### Zipping a list of files and/or folders
+    QMicroz::compress_({"file_path", "folder_path", "file2_path"});
+
+#### UnZipping a file into a memory buffer (non-static)
+```
+BufFileList _buffer;
+QMicroz _qmz("path_to_zip");
+if (_qmz)
+    _buffer = _qmz.extract_to_ram();
+```
 
 A complete list of functions is available in the [qmicroz.h](src/qmicroz.h) file.
 
+---
 ### How to link a compiled library to an existing project:
-Trivial example. Windows system, you have ready-made files: _libqmicroz.dll, libqmicroz.dll.a, qmicroz.h, qmicroz_global.h_\
+Trivial example. Windows system, you have ready-made files: _libqmicroz.dll, qmicroz.h, qmicroz_global.h_\
 Just create a folder in the root of your Qt project (for example **'lib'**) and copy these files into it.
 
 And add to CMakeLists.txt:
