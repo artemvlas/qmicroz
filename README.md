@@ -1,4 +1,5 @@
-### QMicroz is a simple Zip/Unzip solution for Qt projects.
+# QMicroz
+### _A simple Zip/Unzip solution for Qt projects._
 This is a lightweight C++/Qt wrapper around the [miniz](https://github.com/richgel999/miniz) zip library (based on zlib).
 The code can easily be compiled (or included) and used as a shared (or static) library, which will provide ready-made functions for quick and convenient work with zip archives. There is no need to add additional dependencies like zlib and deal with low-level APIs.
 
