@@ -10,7 +10,14 @@
 #ifndef QMICROZ_H
 #define QMICROZ_H
 
-#include "qmicroz_global.h"
+#include <QtCore/qglobal.h>
+
+#if defined(QMICROZ_LIBRARY)
+#define QMICROZ_EXPORT Q_DECL_EXPORT
+#else
+#define QMICROZ_EXPORT Q_DECL_IMPORT
+#endif
+
 #include <QStringList>
 #include <QMap>
 

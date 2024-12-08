@@ -37,7 +37,7 @@ A complete list of functions is available in the [qmicroz.h](src/qmicroz.h) file
 
 ---
 ### How to link a compiled library to an existing project:
-Trivial example. Windows system, you have ready-made files: _libqmicroz.dll, qmicroz.h, qmicroz_global.h_\
+Trivial example. Windows system, you have ready-made files: _qmicroz.h and libqmicroz.dll_\
 Just create a folder in the root of your Qt project (for example **'lib'**) and copy these files into it.
 
 And add to CMakeLists.txt:

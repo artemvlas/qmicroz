@@ -16,7 +16,6 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 include_directories("src" "miniz")
 
 add_library(qmicroz SHARED
-  src/qmicroz_global.h
   src/qmicroz.h
   src/qmicroz.cpp
   src/tools.h
