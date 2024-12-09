@@ -33,6 +33,7 @@ if (_qmz)
     _buffer = _qmz.extract_to_ram();
 ```
 
+More examples on [Wiki](https://github.com/artemvlas/qmicroz/wiki/Usage).\
 A complete list of functions is available in the [qmicroz.h](src/qmicroz.h) file.
 
 ---
