@@ -1,7 +1,8 @@
 # QMicroz
 ### _A simple Zip/Unzip solution for Qt projects._
-This is a lightweight C++/Qt wrapper around the [miniz](https://github.com/richgel999/miniz) zip library (based on zlib).
-The code can easily be compiled (or included) and used as a shared (or static) library, which will provide ready-made functions for quick and convenient work with zip archives. There is no need to add additional dependencies like zlib and deal with low-level APIs.
+This is a lightweight C++/Qt wrapper around the [miniz](https://github.com/richgel999/miniz) zip library (based on zlib).\
+The code can easily be used as a library (shared or static), which will provide ready-made functions for quick and convenient work with zip archives.\
+There is no need to add additional dependencies like zlib and deal with low-level APIs.
 
 ### Key features:
 * Create and extract zip files.\
@@ -33,12 +34,12 @@ if (_qmz)
     _buffer = _qmz.extract_to_ram();
 ```
 
-More examples on [Wiki](https://github.com/artemvlas/qmicroz/wiki/Usage).\
+More examples on [Wiki](https://github.com/artemvlas/qmicroz/wiki/Usage-examples).\
 A complete list of functions is available in the [qmicroz.h](src/qmicroz.h) file.
 
 ---
 ### How to link a compiled library to an existing project:
-Trivial example. Windows system, you have ready-made files: _qmicroz.h and libqmicroz.dll_\
+Trivial example. Windows system, you have ready-made files: _qmicroz.h_ and _libqmicroz.dll_\
 Just create a folder in the root of your Qt project (for example **'lib'**) and copy these files into it.
 
 And add to CMakeLists.txt:
