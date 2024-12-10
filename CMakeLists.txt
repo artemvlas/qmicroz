@@ -28,11 +28,13 @@ target_link_libraries(qmicroz PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 
 target_compile_definitions(qmicroz PRIVATE QMICROZ_LIBRARY)
 
-# install
+# install [/usr/lib/libqmicroz.so]
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  include(GNUInstallDirs)
-  install(TARGETS ${PROJECT_NAME}
-      BUNDLE DESTINATION .
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    set(CMAKE_INSTALL_PREFIX "/usr")
+
+    include(GNUInstallDirs)
+    install(TARGETS ${PROJECT_NAME}
+        BUNDLE DESTINATION .
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 endif()
