@@ -18,6 +18,7 @@ mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
     mz_zip_archive *_za = new mz_zip_archive();
     //memset(&__za, 0, sizeof(__za));
 
+    // TODO: make a merge (for example, by pointer)
     bool result = za_type ? mz_zip_writer_init_file(_za, zip_path.toUtf8().constData(), 0)
                           : mz_zip_reader_init_file(_za, zip_path.toUtf8().constData(), 0);
 
@@ -133,7 +134,6 @@ bool add_item_list(mz_zip_archive *p_zip, const QStringList &items, const QStrin
             || (__fi.isDir() && !add_item_folder(p_zip, _relPath)))  // subfolder
         {
             // adding failed
-            // mz_zip_writer_end(p_zip);
             return false;
         }
     }

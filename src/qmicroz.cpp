@@ -42,6 +42,7 @@ bool QMicroz::setZipFile(const QString &zip_path)
         mz_zip_archive *_za = tools::za_new(zip_path, tools::ZaReader);
 
         if (_za) {
+            // close the currently opened one if any
             closeArchive();
 
             m_archive = _za;
@@ -61,7 +62,7 @@ bool QMicroz::setZipBuffer(const QByteArray &buffered_zip)
     mz_zip_archive *_za = new mz_zip_archive();
 
     if (mz_zip_reader_init_mem(_za, buffered_zip.constData(), buffered_zip.size(), 0)) {
-        // close currently opened if any
+        // close the currently opened one if any
         closeArchive();
 
         // set the new one

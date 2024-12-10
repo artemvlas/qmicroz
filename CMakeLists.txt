@@ -36,5 +36,5 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     install(TARGETS ${PROJECT_NAME}
         BUNDLE DESTINATION .
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
+    )
 endif()
