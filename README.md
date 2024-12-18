@@ -24,7 +24,7 @@ For example:
     QMicroz::compress_folder("source_path", "zip_file_path");
 
 #### Zipping a list of files and/or folders
-    QMicroz::compress_({"file_path", "folder_path", "file2_path"});
+    QMicroz::compress_here({"file_path", "folder_path", "file2_path"});
 
 #### UnZipping a file into a memory buffer (non-static)
 ```

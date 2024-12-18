@@ -41,12 +41,6 @@ mz_zip_archive_file_stat za_file_stat(mz_zip_archive* pZip, int file_index)
     return mz_zip_archive_file_stat();
 }
 
-mz_zip_archive_file_stat za_file_stat(void* pZip, int file_index)
-{
-    mz_zip_archive *_za = static_cast<mz_zip_archive *>(pZip);
-    return za_file_stat(_za, file_index);
-}
-
 bool za_close(mz_zip_archive* pZip)
 {
     if (pZip && mz_zip_end(pZip)) {

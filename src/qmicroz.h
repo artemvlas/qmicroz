@@ -56,12 +56,12 @@ public:
 
     // Zipped Items Info
     const ZipContentsList& contents() const;                                           // returns a list of files {index : path} contained in the archive
-    int findIndex(const QString &file_name) const;                                     // returns the index by the specified file name, -1 if not found
     int count() const;                                                                 // returns the number of items in the archive
+    int findIndex(const QString &file_name) const;                                     // returns the index by the specified file name, -1 if not found
     bool isFolder(int index) const;                                                    // whether the specified index belongs to the folder
     bool isFile(int index) const;                                                      // ... to the file
     QString itemName(int index) const;                                                 // returns the name/path corresponding to the index
-    qint64 itemCompSize(int index) const;                                              // returns the compressed file size of the specified index
+    qint64 itemCompSize(int index) const;                                              // returns the compressed size of the file at the specified index
     qint64 itemUnCompSize(int index) const;                                            // the uncompressed size
     QDateTime itemLastModified(int index) const;                                       // returns the file modification date stored in the archive
 
@@ -72,20 +72,20 @@ public:
 
     BufFileList extract_to_ram() const;                                                // extracts the archive into the RAM buffer
     BufFile     extract_to_ram(int file_index) const;                                  // extracts the selected index
-    BufFile     extract_to_ram_f(const QString &file_name);                            // find by file_name and extracts if any
+    BufFile     extract_to_ram_f(const QString &file_name) const;                      // find by file_name and extracts if any
 
     // STATIC functions
     static bool extract(const QString &zip_path);                                      // extracting the zip into the parent dir
     static bool extract(const QString &zip_path, const QString &output_folder);        // to output_folder
 
-    static bool compress_(const QString &path);                                        // archiving a file or folder (path), >> parent dir
-    static bool compress_(const QStringList &paths);                                   // paths to files or/and folders
+    static bool compress_here(const QString &path);                                    // zip a file or folder (path), >> parent dir
+    static bool compress_here(const QStringList &paths);                               // paths to files or/and folders
 
-    static bool compress_file(const QString &source_path);                             // archiving a file, >> parent dir
+    static bool compress_file(const QString &source_path);                             // zip a file, >> parent dir
     static bool compress_file(const QString &source_path, const QString &zip_path);    // >> zip_path
-    static bool compress_folder(const QString &source_path);                           // archiving a folder, >> parent dir
+    static bool compress_folder(const QString &source_path);                           // zip a folder, >> parent dir
     static bool compress_folder(const QString &source_path, const QString &zip_path);  // >> zip_path
-    static bool compress_list(const QStringList &paths, const QString &zip_path);      // archiving a list of files or folders (paths), >> zip_path
+    static bool compress_list(const QStringList &paths, const QString &zip_path);      // zip a list of files or folders (paths), >> zip_path
 
     static bool compress_buf(const BufFileList &buf_data, const QString &zip_path);    // creates an archive with files from the listed paths and data
     static bool compress_buf(const QByteArray &data,
