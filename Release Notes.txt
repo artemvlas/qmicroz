@@ -1,3 +1,8 @@
+QMicroz v0.4
+* Header files merged.
+    (qmicroz_global.h --> qmicroz.h)
+
+---
 QMicroz v0.3
 * Added the ability to work with buffered data:
     Creating zip archives from QByteArrays.
@@ -6,6 +11,7 @@ QMicroz v0.3
 * Extraction of individual files has been implemented.
 * Micro files are zipped without meaningless compression.
 
+---
 QMicroz v0.2
 * Now files are zipped directly, without full buffering in ram.
 * The modification date of files is now saved when archiving.
