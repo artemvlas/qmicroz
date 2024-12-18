@@ -3,6 +3,7 @@ QMicroz v0.4
     For example, get the modification date or compressed/uncompressed size.
 * Header files merged.
     (qmicroz_global.h --> qmicroz.h)
+* Some functions have been renamed.
 
 ---
 QMicroz v0.3
