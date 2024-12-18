@@ -1,6 +1,9 @@
+#############
+## QMicroz ##
+#############
 cmake_minimum_required(VERSION 3.16)
 
-project(qmicroz VERSION 0.3)
+project(qmicroz VERSION 0.4)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -8,13 +11,14 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# find packages
+# find Qt packages
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 
-# include directories
+# directories
 include_directories("src" "miniz")
 
+# sources
 add_library(qmicroz SHARED
   src/qmicroz.h
   src/qmicroz.cpp
@@ -24,8 +28,8 @@ add_library(qmicroz SHARED
   miniz/miniz.c
 )
 
+# target
 target_link_libraries(qmicroz PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-
 target_compile_definitions(qmicroz PRIVATE QMICROZ_LIBRARY)
 
 # install [/usr/lib/libqmicroz.so]
