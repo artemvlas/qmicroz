@@ -138,6 +138,58 @@ const ZipContentsList& QMicroz::contents()
     return m_zip_contents;
 }
 
+int QMicroz::count() const
+{
+    if (!m_archive)
+        return 0;
+
+    mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
+
+    return mz_zip_reader_get_num_files(_za);
+}
+
+QString QMicroz::itemName(int index)
+{
+    return contents().value(index);
+}
+
+QString QMicroz::itemName(int index) const
+{
+    if (!m_archive)
+        return QString();
+
+    mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
+
+    return tools::za_item_name(_za, index);
+}
+
+qint64 QMicroz::itemCompSize(int index) const
+{
+    if (!m_archive)
+        return 0;
+
+    return tools::za_file_stat(m_archive, index).m_comp_size;
+}
+
+qint64 QMicroz::itemUnCompSize(int index) const
+{
+    if (!m_archive)
+        return 0;
+
+    return tools::za_file_stat(m_archive, index).m_uncomp_size;
+}
+
+QDateTime QMicroz::itemLastModified(int index) const
+{
+    if (!m_archive)
+        return QDateTime();
+
+    mz_zip_archive_file_stat _stat = tools::za_file_stat(m_archive, index);
+    const qint64 _sec = tools::za_file_stat(m_archive, index).m_time;
+
+    return _sec > 0 ? QDateTime::fromSecsSinceEpoch(_sec) : QDateTime();
+}
+
 bool QMicroz::extractAll()
 {
     if (!m_archive) {
@@ -294,7 +346,7 @@ BufFile QMicroz::extract_to_ram(int file_index) const
     return _res;
 }
 
-BufFile QMicroz::extract_to_ram_file(const QString &file_name)
+BufFile QMicroz::extract_to_ram_f(const QString &file_name)
 {
     return extract_to_ram(findIndex(file_name));
 }

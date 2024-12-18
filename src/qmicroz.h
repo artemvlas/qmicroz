@@ -19,6 +19,7 @@
 
 #include <QStringList>
 #include <QMap>
+#include <QDateTime>
 
 // path inside zip : data
 using BufFileList = QMap<QString, QByteArray>;
@@ -47,20 +48,30 @@ public:
     ~QMicroz();
 
     explicit operator bool() const { return (bool)m_archive; }                         // checks whether the archive is setted
-    const ZipContentsList& contents();                                                 // returns a list of files contained in a given archive
 
     bool setZipFile(const QString &zip_path);                                          // sets and opens the zip for the current object
     bool setZipBuffer(const QByteArray &buffered_zip);                                 // sets a buffered in memory zip archive
     void setOutputFolder(const QString &output_folder);                                // path to the folder where to place the extracted files
     void closeArchive();                                                               // closes the currently setted zip and resets the pointer
 
+    // Zipped Items Info
+    const ZipContentsList& contents();                                                 // returns a list of files contained in a given archive
+    int findIndex(const QString &file_name);                                           // returns the index by the specified file name, -1 if not found
+    int count() const;                                                                 // returns the number of items in the archive
+    QString itemName(int index);                                                       // returns the name/path corresponding to the index (cached, from 'm_zip_contents')
+    QString itemName(int index) const;                                                 // non-cached
+    qint64 itemCompSize(int index) const;                                              // returns the compressed file size of the specified index
+    qint64 itemUnCompSize(int index) const;                                            // the uncompressed size
+    QDateTime itemLastModified(int index) const;                                       // returns the file modification date stored in the archive
+
+    // Extraction
     bool extractAll();                                                                 // extracts the archive into the output folder (or the parent one)
     bool extractIndex(int file_index, bool recreate_path = true);                      // extracts the file with index to disk
     bool extractFile(const QString &file_name, bool recreate_path = true);             // find by file_name and extracts if any
 
     BufFileList extract_to_ram() const;                                                // extracts the archive into the RAM buffer
     BufFile     extract_to_ram(int file_index) const;                                  // extracts the selected index
-    BufFile     extract_to_ram_file(const QString &file_name);                         // find by file_name and extracts if any
+    BufFile     extract_to_ram_f(const QString &file_name);                            // find by file_name and extracts if any
 
     // STATIC functions
     static bool extract(const QString &zip_path);                                      // extracting the zip into the parent dir
@@ -82,7 +93,6 @@ public:
 private:
     const ZipContentsList& updateZipContents();                                        // updates the list of current archive contents
     const QString& outputFolder();                                                     // returns the path to place the extracted files
-    int findIndex(const QString &file_name);                                           // finds the file index by the specified name
 
     // the void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;
