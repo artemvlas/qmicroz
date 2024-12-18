@@ -55,11 +55,12 @@ public:
     void closeArchive();                                                               // closes the currently setted zip and resets the pointer
 
     // Zipped Items Info
-    const ZipContentsList& contents();                                                 // returns a list of files contained in a given archive
-    int findIndex(const QString &file_name);                                           // returns the index by the specified file name, -1 if not found
+    const ZipContentsList& contents() const;                                           // returns a list of files {index : path} contained in the archive
+    int findIndex(const QString &file_name) const;                                     // returns the index by the specified file name, -1 if not found
     int count() const;                                                                 // returns the number of items in the archive
-    QString itemName(int index);                                                       // returns the name/path corresponding to the index (cached, from 'm_zip_contents')
-    QString itemName(int index) const;                                                 // non-cached
+    bool isFolder(int index) const;                                                    // whether the specified index belongs to the folder
+    bool isFile(int index) const;                                                      // ... to the file
+    QString itemName(int index) const;                                                 // returns the name/path corresponding to the index
     qint64 itemCompSize(int index) const;                                              // returns the compressed file size of the specified index
     qint64 itemUnCompSize(int index) const;                                            // the uncompressed size
     QDateTime itemLastModified(int index) const;                                       // returns the file modification date stored in the archive
@@ -100,7 +101,7 @@ private:
     QString m_zip_path;                                                                // path to the current zip file
     QString m_output_folder;                                                           // folder to place the extracted files
     ZipContentsList m_zip_contents;                                                    // holds the list of current contents { index : filename (or path) }
-    static const QString s_zip_ext;
+    static const QString s_zip_ext;                                                    // ".zip"
 
 }; // class QMicroz
 

@@ -103,6 +103,7 @@ void QMicroz::closeArchive()
         mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
         tools::za_close(_za);
         m_archive = nullptr;
+        m_zip_contents.clear();
     }
 }
 
@@ -116,9 +117,9 @@ const ZipContentsList& QMicroz::updateZipContents()
     mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
 
     // iterating...
-    const mz_uint _num_items = mz_zip_reader_get_num_files(_za);
+    //const int _num_items = mz_zip_reader_get_num_files(_za); // --> count()
 
-    for (uint it = 0; it < _num_items; ++it) {
+    for (int it = 0; it < count(); ++it) {
         const QString _filename = tools::za_item_name(_za, it);
         if (_filename.isEmpty()) {
             break;
@@ -130,37 +131,29 @@ const ZipContentsList& QMicroz::updateZipContents()
     return m_zip_contents;
 }
 
-const ZipContentsList& QMicroz::contents()
+const ZipContentsList& QMicroz::contents() const
 {
-    if (m_zip_contents.isEmpty())
-        updateZipContents();
-
     return m_zip_contents;
 }
 
 int QMicroz::count() const
 {
-    if (!m_archive)
-        return 0;
-
-    mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
-
-    return mz_zip_reader_get_num_files(_za);
+    return mz_zip_reader_get_num_files(static_cast<mz_zip_archive *>(m_archive));
 }
 
-QString QMicroz::itemName(int index)
+bool QMicroz::isFolder(int index) const
 {
-    return contents().value(index);
+    return itemName(index).endsWith('/');
+}
+
+bool QMicroz::isFile(int index) const
+{
+    return !isFolder(index);
 }
 
 QString QMicroz::itemName(int index) const
 {
-    if (!m_archive)
-        return QString();
-
-    mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
-
-    return tools::za_item_name(_za, index);
+    return contents().value(index);
 }
 
 qint64 QMicroz::itemCompSize(int index) const
@@ -281,9 +274,7 @@ BufFileList QMicroz::extract_to_ram() const
     mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
 
     // extracting...
-    const mz_uint _num_items = mz_zip_reader_get_num_files(_za);
-
-    for (uint it = 0; it < _num_items; ++it) {
+    for (int it = 0; it < count(); ++it) {
         const QString _filename = tools::za_item_name(_za, it);
         if (_filename.isEmpty()) {
             break;
@@ -293,7 +284,7 @@ BufFileList QMicroz::extract_to_ram() const
         if (_filename.endsWith(tools::s_sep))
             continue;
 
-        qDebug() << "Extracting:" << (it + 1) << '/' << _num_items << _filename;
+        qDebug() << "Extracting:" << (it + 1) << '/' << count() << _filename;
 
         // extract file
         const QByteArray _data = tools::extract_to_buffer(_za, it);
@@ -527,11 +518,8 @@ bool QMicroz::compress_buf(const QByteArray &data, const QString &file_name, con
     return compress_buf(_buf, zip_path);
 }
 
-int QMicroz::findIndex(const QString &file_name)
+int QMicroz::findIndex(const QString &file_name) const
 {
-    if (m_zip_contents.isEmpty())
-        updateZipContents();
-
     ZipContentsList::const_iterator it;
 
     // full path matching
