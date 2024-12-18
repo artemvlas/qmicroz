@@ -3,8 +3,7 @@
  * under the MIT License.
  * https://github.com/artemvlas/qmicroz
  *
- * Author: Artem Vlasenko
- * https://github.com/artemvlas
+ * Copyright (c) 2024 Artem Vlasenko
 */
 #ifndef TOOLS_H
 #define TOOLS_H
