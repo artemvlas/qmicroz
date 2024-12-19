@@ -116,8 +116,6 @@ const ZipContents& QMicroz::updateZipContents()
     mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
 
     // iterating...
-    //const int _num_items = mz_zip_reader_get_num_files(_za); // --> count()
-
     for (int it = 0; it < count(); ++it) {
         const QString _filename = tools::za_item_name(_za, it);
         if (_filename.isEmpty()) {
@@ -217,19 +215,19 @@ bool QMicroz::extractAll()
 }
 
 // !recreate_path >> place in the root of the output folder
-bool QMicroz::extractIndex(int file_index, bool recreate_path)
+bool QMicroz::extractIndex(int index, bool recreate_path)
 {
     if (!m_archive) {
         qDebug() << "No zip archive setted";
         return false;
     }
 
-    if (file_index == -1 || outputFolder().isEmpty())
+    if (index == -1 || outputFolder().isEmpty())
         return false;
 
     const QString &output_folder = outputFolder();
 
-    qDebug() << "Extract:" << file_index << "from:" << m_zip_path;
+    qDebug() << "Extract:" << index << "from:" << m_zip_path;
     qDebug() << "Output folder:" << output_folder;
 
     // create output folder if it doesn't exist
@@ -241,7 +239,7 @@ bool QMicroz::extractIndex(int file_index, bool recreate_path)
 
     // extracting...
     // the name is also a relative path inside the archive
-    const QString _filename = tools::za_item_name(_za, file_index);
+    const QString _filename = name(index); // tools::za_item_name(_za, index);
     if (_filename.isEmpty()) {
         return false;
     }
@@ -261,7 +259,7 @@ bool QMicroz::extractIndex(int file_index, bool recreate_path)
         qDebug() << "Subfolder extracted";
     }
     // extract file
-    else if (!tools::extract_to_file(_za, file_index, _outpath)) {
+    else if (!tools::extract_to_file(_za, index, _outpath)) {
         return false;
     }
 
@@ -289,7 +287,7 @@ BufList QMicroz::extractToBuf() const
 
     // extracting...
     for (int it = 0; it < count(); ++it) {
-        const QString _filename = tools::za_item_name(_za, it);
+        const QString _filename = name(it); // tools::za_item_name(_za, it);
         if (_filename.isEmpty()) {
             break;
         }
