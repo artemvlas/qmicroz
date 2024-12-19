@@ -28,10 +28,10 @@ For example:
 
 #### UnZipping a file into a memory buffer (non-static)
 ```
-BufFileList _buffer;
+BufList _buffer;
 QMicroz _qmz("path_to_zip");
 if (_qmz)
-    _buffer = _qmz.extract_to_ram();
+    _buffer = _qmz.extractToBuf();
 ```
 
 More examples on [Wiki](https://github.com/artemvlas/qmicroz/wiki/Usage-examples).\

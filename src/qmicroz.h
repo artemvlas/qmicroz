@@ -22,7 +22,7 @@
 #include <QDateTime>
 
 // path inside zip : data
-using BufFileList = QMap<QString, QByteArray>;
+using BufList = QMap<QString, QByteArray>;
 
 struct BufFile {
     BufFile() {}
@@ -36,7 +36,7 @@ struct BufFile {
 }; // struct BufFile
 
 // list of files (index : path) contained in the archive
-using ZipContentsList = QMap<int, QString>;
+using ZipContents = QMap<int, QString>;
 
 class QMICROZ_EXPORT QMicroz
 {
@@ -55,24 +55,24 @@ public:
     void closeArchive();                                                               // closes the currently setted zip and resets the pointer
 
     // Zipped Items Info
-    const ZipContentsList& contents() const;                                           // returns a list of files {index : path} contained in the archive
+    const ZipContents& contents() const;                                               // returns a list of files {index : path} contained in the archive
     int count() const;                                                                 // returns the number of items in the archive
     int findIndex(const QString &file_name) const;                                     // returns the index by the specified file name, -1 if not found
     bool isFolder(int index) const;                                                    // whether the specified index belongs to the folder
     bool isFile(int index) const;                                                      // ... to the file
-    QString itemName(int index) const;                                                 // returns the name/path corresponding to the index
-    qint64 itemCompSize(int index) const;                                              // returns the compressed size of the file at the specified index
-    qint64 itemUnCompSize(int index) const;                                            // the uncompressed size
-    QDateTime itemLastModified(int index) const;                                       // returns the file modification date stored in the archive
+    QString name(int index) const;                                                     // returns the name/path corresponding to the index
+    qint64 sizeCompressed(int index) const;                                            // returns the compressed size of the file at the specified index
+    qint64 sizeUncompressed(int index) const;                                          // the uncompressed size
+    QDateTime lastModified(int index) const;                                           // returns the file modification date stored in the archive
 
     // Extraction
     bool extractAll();                                                                 // extracts the archive into the output folder (or the parent one)
     bool extractIndex(int file_index, bool recreate_path = true);                      // extracts the file with index to disk
-    bool extractFile(const QString &file_name, bool recreate_path = true);             // find by file_name and extracts if any
+    bool extractFile(const QString &file_name, bool recreate_path = true);             // finds file_name and extracts if any; slower than 'extractIndex'
 
-    BufFileList extract_to_ram() const;                                                // extracts the archive into the RAM buffer
-    BufFile     extract_to_ram(int file_index) const;                                  // extracts the selected index
-    BufFile     extract_to_ram_f(const QString &file_name) const;                      // find by file_name and extracts if any
+    BufList extractToBuf() const;                                                      // unzips all files into the RAM buffer { path : data }
+    BufFile extractToBuf(int file_index) const;                                        // extracts the selected index only
+    BufFile extractFileToBuf(const QString &file_name) const;                          // find by file_name and extracts if any
 
     // STATIC functions
     static bool extract(const QString &zip_path);                                      // extracting the zip into the parent dir
@@ -87,12 +87,12 @@ public:
     static bool compress_folder(const QString &source_path, const QString &zip_path);  // >> zip_path
     static bool compress_list(const QStringList &paths, const QString &zip_path);      // zip a list of files or folders (paths), >> zip_path
 
-    static bool compress_buf(const BufFileList &buf_data, const QString &zip_path);    // creates an archive with files from the listed paths and data
+    static bool compress_buf(const BufList &buf_data, const QString &zip_path);        // creates an archive with files from the listed paths and data
     static bool compress_buf(const QByteArray &data,
                              const QString &file_name, const QString &zip_path);       // creates an archive (zip_path) containing a file (file_name, data)
 
 private:
-    const ZipContentsList& updateZipContents();                                        // updates the list of current archive contents
+    const ZipContents& updateZipContents();                                            // updates the list of current archive contents
     const QString& outputFolder();                                                     // returns the path to place the extracted files
 
     // the void pointer is used to allow the miniz header not to be included
@@ -100,7 +100,7 @@ private:
 
     QString m_zip_path;                                                                // path to the current zip file
     QString m_output_folder;                                                           // folder to place the extracted files
-    ZipContentsList m_zip_contents;                                                    // holds the list of current contents { index : filename (or path) }
+    ZipContents m_zip_contents;                                                        // holds the list of current contents { index : filename (or path) }
     static const QString s_zip_ext;                                                    // ".zip"
 
 }; // class QMicroz

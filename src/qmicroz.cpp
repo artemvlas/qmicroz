@@ -107,7 +107,7 @@ void QMicroz::closeArchive()
     }
 }
 
-const ZipContentsList& QMicroz::updateZipContents()
+const ZipContents& QMicroz::updateZipContents()
 {
     m_zip_contents.clear();
 
@@ -131,7 +131,7 @@ const ZipContentsList& QMicroz::updateZipContents()
     return m_zip_contents;
 }
 
-const ZipContentsList& QMicroz::contents() const
+const ZipContents& QMicroz::contents() const
 {
     return m_zip_contents;
 }
@@ -143,7 +143,7 @@ int QMicroz::count() const
 
 bool QMicroz::isFolder(int index) const
 {
-    return itemName(index).endsWith('/');
+    return name(index).endsWith('/');
 }
 
 bool QMicroz::isFile(int index) const
@@ -151,12 +151,12 @@ bool QMicroz::isFile(int index) const
     return !isFolder(index);
 }
 
-QString QMicroz::itemName(int index) const
+QString QMicroz::name(int index) const
 {
     return contents().value(index);
 }
 
-qint64 QMicroz::itemCompSize(int index) const
+qint64 QMicroz::sizeCompressed(int index) const
 {
     if (!m_archive)
         return 0;
@@ -164,7 +164,7 @@ qint64 QMicroz::itemCompSize(int index) const
     return tools::za_file_stat(static_cast<mz_zip_archive *>(m_archive), index).m_comp_size;
 }
 
-qint64 QMicroz::itemUnCompSize(int index) const
+qint64 QMicroz::sizeUncompressed(int index) const
 {
     if (!m_archive)
         return 0;
@@ -172,7 +172,7 @@ qint64 QMicroz::itemUnCompSize(int index) const
     return tools::za_file_stat(static_cast<mz_zip_archive *>(m_archive), index).m_uncomp_size;
 }
 
-QDateTime QMicroz::itemLastModified(int index) const
+QDateTime QMicroz::lastModified(int index) const
 {
     if (!m_archive)
         return QDateTime();
@@ -259,9 +259,9 @@ bool QMicroz::extractFile(const QString &file_name, bool recreate_path)
     return extractIndex(findIndex(file_name), recreate_path);
 }
 
-BufFileList QMicroz::extract_to_ram() const
+BufList QMicroz::extractToBuf() const
 {
-    BufFileList _res;
+    BufList _res;
 
     if (!m_archive) {
         qWarning() << "No archive setted";
@@ -295,7 +295,7 @@ BufFileList QMicroz::extract_to_ram() const
     return _res;
 }
 
-BufFile QMicroz::extract_to_ram(int file_index) const
+BufFile QMicroz::extractToBuf(int file_index) const
 {
     BufFile _res;
 
@@ -336,9 +336,9 @@ BufFile QMicroz::extract_to_ram(int file_index) const
     return _res;
 }
 
-BufFile QMicroz::extract_to_ram_f(const QString &file_name) const
+BufFile QMicroz::extractFileToBuf(const QString &file_name) const
 {
-    return extract_to_ram(findIndex(file_name));
+    return extractToBuf(findIndex(file_name));
 }
 
 // STATIC functions ---->>>
@@ -479,7 +479,7 @@ bool QMicroz::compress_list(const QStringList &paths, const QString &zip_path)
     return tools::createArchive(zip_path, _worklist, _root);
 }
 
-bool QMicroz::compress_buf(const BufFileList &buf_data, const QString &zip_path)
+bool QMicroz::compress_buf(const BufList &buf_data, const QString &zip_path)
 {
     qDebug() << "Zipping buffered data to:" << zip_path;
 
@@ -495,7 +495,7 @@ bool QMicroz::compress_buf(const BufFileList &buf_data, const QString &zip_path)
     }
 
     // process
-    BufFileList::const_iterator it;
+    BufList::const_iterator it;
     for (it = buf_data.constBegin(); it != buf_data.constEnd(); ++it) {
         if (!tools::add_item_data(__za, it.key(), it.value())) {
             tools::za_close(__za);
@@ -512,14 +512,14 @@ bool QMicroz::compress_buf(const BufFileList &buf_data, const QString &zip_path)
 
 bool QMicroz::compress_buf(const QByteArray &data, const QString &file_name, const QString &zip_path)
 {
-    BufFileList _buf;
+    BufList _buf;
     _buf[file_name] = data;
     return compress_buf(_buf, zip_path);
 }
 
 int QMicroz::findIndex(const QString &file_name) const
 {
-    ZipContentsList::const_iterator it;
+    ZipContents::const_iterator it;
 
     // full path matching
     for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
