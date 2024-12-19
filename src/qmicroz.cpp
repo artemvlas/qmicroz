@@ -322,9 +322,7 @@ BufFile QMicroz::extractToBuf(int index) const
 
     qDebug() << "Extracting to RAM:" << (m_zip_path.isEmpty() ? "buffered zip" : m_zip_path);
 
-    // mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
-
-    const QString _filename = name(index); // tools::za_item_name(_za, index);
+    const QString _filename = name(index);
     if (_filename.isEmpty())
         return _res;
 
@@ -355,9 +353,18 @@ BufFile QMicroz::extractFileToBuf(const QString &file_name) const
     return extractToBuf(findIndex(file_name));
 }
 
+// Recommended in most cases if speed and memory requirements are not critical.
 QByteArray QMicroz::extractData(int index) const
 {
     return tools::extract_to_buffer(static_cast<mz_zip_archive *>(m_archive), index);
+}
+
+// This function is faster and consumes less resources than the previous one,
+// but requires an additional delete operation to avoid memory leaks. ( delete _array.constData(); )
+QByteArray QMicroz::extractDataRef(int index) const
+{
+    return tools::extract_to_buffer(static_cast<mz_zip_archive *>(m_archive),
+                                    index, false);
 }
 
 // STATIC functions ---->>>

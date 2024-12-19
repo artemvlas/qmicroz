@@ -31,9 +31,9 @@ struct BufFile {
 
     explicit operator bool() const { return !m_name.isEmpty(); }
 
-    QString m_name;
-    QByteArray m_data;
-    QDateTime m_modified;
+    QString m_name;       // file name (path inside the archive)
+    QByteArray m_data;    // file data (uncompressed)
+    QDateTime m_modified; // date and time of the file's last modification
 }; // struct BufFile
 
 // list of files {index : path} contained in the archive
@@ -79,7 +79,8 @@ public:
     BufList extractToBuf() const;                                                      // unzips all files into the RAM buffer { path : data }
     BufFile extractToBuf(int index) const;                                             // extracts the selected index only
     BufFile extractFileToBuf(const QString &file_name) const;                          // finds the file_name and extracts to Buf; slower than (index)
-    QByteArray extractData(int index) const;                                           // returns the extracted data of the file at the specified index
+    QByteArray extractData(int index) const;                                           // returns the extracted file data; QByteArray owns the copied data
+    QByteArray extractDataRef(int index) const;                                        // QByteArray does NOT own the data! To free memory: delete _array.constData();
 
     // STATIC functions
     static bool extract(const QString &zip_path);                                      // extracting the zip into the parent dir
