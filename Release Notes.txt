@@ -1,7 +1,9 @@
 QMicroz v0.4
 * It is now possible to request extended information about items contained in the archive.
     For example, get the modification date or compressed/uncompressed size.
-* The file extracted to the buffer (struct BufFile) now also contains the modification date.
+* The file extracted to the buffer (struct BufFile) now also contains its date modified.
+* It is now possible to both use and dispense with the proposed custom types: BufFile, BufList, ZipContents...
+    For example, extractData(index) returns a simple QByteArray with file's data, if BufFile struct is not needed.
 * Several helper functions have been added to make working with the archive easier.
 * Header files merged.
     (qmicroz_global.h --> qmicroz.h)

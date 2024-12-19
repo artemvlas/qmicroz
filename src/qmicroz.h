@@ -79,6 +79,7 @@ public:
     BufList extractToBuf() const;                                                      // unzips all files into the RAM buffer { path : data }
     BufFile extractToBuf(int index) const;                                             // extracts the selected index only
     BufFile extractFileToBuf(const QString &file_name) const;                          // finds the file_name and extracts to Buf; slower than (index)
+    QByteArray extractData(int index) const;                                           // returns the extracted data of the file at the specified index
 
     // STATIC functions
     static bool extract(const QString &zip_path);                                      // extracting the zip into the parent dir

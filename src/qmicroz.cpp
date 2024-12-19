@@ -337,7 +337,7 @@ BufFile QMicroz::extractToBuf(int index) const
     qDebug() << "Extracting:" << _filename;
 
     // extract file
-    const QByteArray _data = tools::extract_to_buffer(static_cast<mz_zip_archive *>(m_archive), index);
+    const QByteArray _data = extractData(index);
 
     if (!_data.isNull()) {
         _res.m_name = _filename;
@@ -353,6 +353,11 @@ BufFile QMicroz::extractToBuf(int index) const
 BufFile QMicroz::extractFileToBuf(const QString &file_name) const
 {
     return extractToBuf(findIndex(file_name));
+}
+
+QByteArray QMicroz::extractData(int index) const
+{
+    return tools::extract_to_buffer(static_cast<mz_zip_archive *>(m_archive), index);
 }
 
 // STATIC functions ---->>>
