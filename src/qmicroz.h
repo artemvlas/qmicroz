@@ -33,6 +33,7 @@ struct BufFile {
 
     QString m_name;
     QByteArray m_data;
+    QDateTime m_modified;
 }; // struct BufFile
 
 // list of files (index : path) contained in the archive
@@ -51,8 +52,13 @@ public:
 
     bool setZipFile(const QString &zip_path);                                          // sets and opens the zip for the current object
     bool setZipBuffer(const QByteArray &buffered_zip);                                 // sets a buffered in memory zip archive
-    void setOutputFolder(const QString &output_folder);                                // path to the folder where to place the extracted files
+    void setOutputFolder(const QString &output_folder = QString());                    // path to the folder where to place the extracted files; empty --> parent dir
     void closeArchive();                                                               // closes the currently setted zip and resets the pointer
+
+    // Info about the Archive
+    const QString& zipFilePath() const;                                                // returns the path to the current zip-file ("m_zip_path")
+    const QString& outputFolder() const;                                               // returns the path to place the extracted files
+    qint64 sizeUncompressed() const;                                                   // total uncompressed data size (space required for extraction)
 
     // Zipped Items Info
     const ZipContents& contents() const;                                               // returns a list of files {index : path} contained in the archive
@@ -71,7 +77,7 @@ public:
     bool extractFile(const QString &file_name, bool recreate_path = true);             // finds file_name and extracts if any; slower than 'extractIndex'
 
     BufList extractToBuf() const;                                                      // unzips all files into the RAM buffer { path : data }
-    BufFile extractToBuf(int file_index) const;                                        // extracts the selected index only
+    BufFile extractToBuf(int index) const;                                             // extracts the selected index only
     BufFile extractFileToBuf(const QString &file_name) const;                          // find by file_name and extracts if any
 
     // STATIC functions
@@ -93,7 +99,6 @@ public:
 
 private:
     const ZipContents& updateZipContents();                                            // updates the list of current archive contents
-    const QString& outputFolder();                                                     // returns the path to place the extracted files
 
     // the void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;

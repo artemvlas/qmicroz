@@ -47,6 +47,7 @@ bool QMicroz::setZipFile(const QString &zip_path)
             m_archive = _za;
             m_zip_path = zip_path;
             updateZipContents();
+            setOutputFolder(); // zip file's parent folder
             return true;
         }
     }
@@ -66,7 +67,6 @@ bool QMicroz::setZipBuffer(const QByteArray &buffered_zip)
 
         // set the new one
         m_archive = _za;
-        m_zip_path.clear();
         updateZipContents();
         return true;
     }
@@ -78,21 +78,19 @@ bool QMicroz::setZipBuffer(const QByteArray &buffered_zip)
 
 void QMicroz::setOutputFolder(const QString &output_folder)
 {
+    if (output_folder.isEmpty() && !m_zip_path.isEmpty()) {
+        // set zip file's parent folder
+        m_output_folder = QFileInfo(m_zip_path).absolutePath();
+        return;
+    }
+
     m_output_folder = output_folder;
 }
 
-const QString& QMicroz::outputFolder()
+const QString& QMicroz::outputFolder() const
 {
-    if (m_output_folder.isEmpty()) {
-        if (m_zip_path.isEmpty()) {
-            // buffered zip with no m_output_folder setted
-            qWarning() << "No output folder setted";
-        }
-        else {
-            // zip file's parent folder
-            m_output_folder = QFileInfo(m_zip_path).absolutePath();
-        }
-    }
+    if (m_output_folder.isEmpty())
+        qWarning() << "No output folder setted";
 
     return m_output_folder;
 }
@@ -100,10 +98,11 @@ const QString& QMicroz::outputFolder()
 void QMicroz::closeArchive()
 {
     if (m_archive) {
-        mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
-        tools::za_close(_za);
+        tools::za_close(static_cast<mz_zip_archive *>(m_archive));
         m_archive = nullptr;
         m_zip_contents.clear();
+        m_zip_path.clear();
+        m_output_folder.clear();
     }
 }
 
@@ -129,6 +128,22 @@ const ZipContents& QMicroz::updateZipContents()
     }
 
     return m_zip_contents;
+}
+
+qint64 QMicroz::sizeUncompressed() const
+{
+    qint64 _total_size = 0;
+
+    for (int it = 0; it < count(); ++it) {
+        _total_size += sizeUncompressed(it);
+    }
+
+    return _total_size;
+}
+
+const QString& QMicroz::zipFilePath() const
+{
+    return m_zip_path;
 }
 
 const ZipContents& QMicroz::contents() const
@@ -295,7 +310,7 @@ BufList QMicroz::extractToBuf() const
     return _res;
 }
 
-BufFile QMicroz::extractToBuf(int file_index) const
+BufFile QMicroz::extractToBuf(int index) const
 {
     BufFile _res;
 
@@ -304,14 +319,14 @@ BufFile QMicroz::extractToBuf(int file_index) const
         return _res;
     }
 
-    if (file_index == -1)
+    if (index == -1)
         return _res;
 
     qDebug() << "Extracting to RAM:" << (m_zip_path.isEmpty() ? "buffered zip" : m_zip_path);
 
-    mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
+    // mz_zip_archive *_za = static_cast<mz_zip_archive *>(m_archive);
 
-    const QString _filename = tools::za_item_name(_za, file_index);
+    const QString _filename = name(index); // tools::za_item_name(_za, index);
     if (_filename.isEmpty())
         return _res;
 
@@ -324,11 +339,12 @@ BufFile QMicroz::extractToBuf(int file_index) const
     qDebug() << "Extracting:" << _filename;
 
     // extract file
-    const QByteArray _data = tools::extract_to_buffer(_za, file_index);
+    const QByteArray _data = tools::extract_to_buffer(static_cast<mz_zip_archive *>(m_archive), index);
 
     if (!_data.isNull()) {
         _res.m_name = _filename;
         _res.m_data = _data;
+        _res.m_modified = lastModified(index);
 
         qDebug() << "Unzipped:" << _data.size() << "bytes";
     }
