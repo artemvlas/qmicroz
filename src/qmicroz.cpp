@@ -206,11 +206,6 @@ bool QMicroz::extractAll()
     if (outputFolder().isEmpty())
         return false;
 
-    // zip file setted
-    if (!m_zip_path.isEmpty())
-        return extract(m_zip_path, outputFolder());
-
-    // mem zip (buffered) setted
     return tools::extract_all_to_disk(static_cast<mz_zip_archive*>(m_archive), outputFolder());
 }
 
@@ -372,11 +367,6 @@ bool QMicroz::extract(const QString &zip_path, const QString &output_folder)
 {
     qDebug() << "Extract:" << zip_path;
     qDebug() << "Output folder:" << output_folder;
-
-    // create output folder if it doesn't exist
-    if (!tools::createFolder(output_folder)) {
-        return false;
-    }
 
     // open zip archive
     mz_zip_archive *__za = tools::za_new(zip_path, tools::ZaReader);
