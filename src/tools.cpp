@@ -180,6 +180,11 @@ QByteArray extract_to_buffer(mz_zip_archive* pZip, int file_index, bool copy_dat
 
 bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder)
 {
+    if (output_folder.isEmpty()) {
+        qDebug() << "No output folder provided";
+        return false;
+    }
+
     const int _num_items = mz_zip_reader_get_num_files(pZip);
 
     if (_num_items == 0) {

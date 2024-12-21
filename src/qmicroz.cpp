@@ -203,9 +203,6 @@ bool QMicroz::extractAll()
         return false;
     }
 
-    if (outputFolder().isEmpty())
-        return false;
-
     return tools::extract_all_to_disk(static_cast<mz_zip_archive*>(m_archive), outputFolder());
 }
 
