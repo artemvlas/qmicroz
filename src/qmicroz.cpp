@@ -365,8 +365,8 @@ bool QMicroz::extract(const QString &zip_path)
 
 bool QMicroz::extract(const QString &zip_path, const QString &output_folder)
 {
-    qDebug() << "Extract:" << zip_path;
-    qDebug() << "Output folder:" << output_folder;
+    //qDebug() << "Extract:" << zip_path;
+    //qDebug() << "Output folder:" << output_folder;
 
     // open zip archive
     mz_zip_archive *__za = tools::za_new(zip_path, tools::ZaReader);

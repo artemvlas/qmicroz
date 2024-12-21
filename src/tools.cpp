@@ -15,7 +15,6 @@ mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
 {
     // open zip archive
     mz_zip_archive *_za = new mz_zip_archive();
-    //memset(&__za, 0, sizeof(__za));
 
     // TODO: make a merge (for example, by pointer)
     bool result = za_type ? mz_zip_writer_init_file(_za, zip_path.toUtf8().constData(), 0)
@@ -181,15 +180,17 @@ QByteArray extract_to_buffer(mz_zip_archive* pZip, int file_index, bool copy_dat
 
 bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder)
 {
-    // create output folder if it doesn't exist
-    if (!createFolder(output_folder)) {
+    const int _num_items = mz_zip_reader_get_num_files(pZip);
+
+    if (_num_items == 0) {
+        qDebug() << "No files to extract";
         return false;
     }
 
+    qDebug() << "Extracting" << _num_items << "items to:" << output_folder;
+
     // extracting...
     bool is_success = true;
-    const int _num_items = mz_zip_reader_get_num_files(pZip);
-
     for (int it = 0; it < _num_items; ++it) {
         const QString _filename = za_item_name(pZip, it);
 
