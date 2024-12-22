@@ -36,20 +36,3 @@ if (_qmz)
 
 More examples on [Wiki](https://github.com/artemvlas/qmicroz/wiki/Usage-examples).\
 A complete list of functions is available in the [qmicroz.h](src/qmicroz.h) file.
-
----
-### How to link a compiled library to an existing project:
-Trivial example. Windows system, you have ready-made files: _qmicroz.h_ and _libqmicroz.dll_\
-Just create a folder in the root of your Qt project (for example **'lib'**) and copy these files into it.
-
-And add to CMakeLists.txt:
-```
-include_directories("lib")
-link_directories("lib")
-
-target_link_libraries(${PROJECT_NAME} PRIVATE qmicroz)
-```
-And then in your *.cpp file:
-```
-#include "qmicroz.h"
-```
