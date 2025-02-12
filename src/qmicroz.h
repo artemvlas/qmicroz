@@ -55,6 +55,8 @@ public:
     void setOutputFolder(const QString &output_folder = QString());                    // path to the folder where to place the extracted files; empty --> parent dir
     void closeArchive();                                                               // closes the currently setted zip and clears the member values
 
+    void setVerbose(bool enable);                                                      // sets a more verbose output into the terminal (more text)
+
     // Info about the Archive
     const QString& zipFilePath() const;                                                // returns the path to the current zip-file ("m_zip_path")
     const QString& outputFolder() const;                                               // the path to place the extracted files
@@ -105,6 +107,7 @@ private:
     // the void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;
 
+    bool m_verbose = true;
     QString m_zip_path;                                                                // path to the current zip file
     QString m_output_folder;                                                           // folder to place the extracted files
     ZipContents m_zip_contents;                                                        // holds the list of current contents { index : filename (or path) }
