@@ -3,7 +3,7 @@
 #############
 cmake_minimum_required(VERSION 3.16)
 
-project(qmicroz VERSION 0.4)
+project(qmicroz VERSION 0.5)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
