@@ -22,7 +22,7 @@ trap cleanup EXIT
 pushd "$BUILD_DIR"
 
 # make the project
-cmake "$REPO_ROOT" -DCMAKE_BUILD_TYPE=Release
+cmake "$REPO_ROOT" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
 
 # build on all CPU cores
 make -j$(nproc)
