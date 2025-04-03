@@ -30,6 +30,7 @@ struct BufFile {
         : m_name(filename), m_data(data) {}
 
     explicit operator bool() const { return !m_name.isEmpty(); }
+    qint64 size() const { return m_data.size(); }
 
     QString m_name;       // file name (path inside the archive)
     QByteArray m_data;    // file data (uncompressed)
