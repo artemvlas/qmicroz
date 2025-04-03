@@ -14,19 +14,19 @@ namespace tools {
 mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
 {
     // open zip archive
-    mz_zip_archive *_za = new mz_zip_archive();
+    mz_zip_archive *p_za = new mz_zip_archive();
 
     // TODO: make a merge (for example, by pointer)
-    bool result = za_type ? mz_zip_writer_init_file(_za, zip_path.toUtf8().constData(), 0)
-                          : mz_zip_reader_init_file(_za, zip_path.toUtf8().constData(), 0);
+    bool result = za_type ? mz_zip_writer_init_file(p_za, zip_path.toUtf8().constData(), 0)
+                          : mz_zip_reader_init_file(p_za, zip_path.toUtf8().constData(), 0);
 
     if (!result) {
         qWarning() << "Failed to open zip file:" << zip_path;
-        delete _za;
+        delete p_za;
         return nullptr;
     }
 
-    return _za;
+    return p_za;
 }
 
 mz_zip_archive_file_stat za_file_stat(mz_zip_archive* pZip, int file_index)
@@ -65,36 +65,36 @@ bool createArchive(const QString &zip_path, const QStringList &item_paths, const
     }
 
     // create and open the output zip file
-    mz_zip_archive *_za = za_new(zip_path, ZaWriter);
-    if (!_za) {
+    mz_zip_archive *p_za = za_new(zip_path, ZaWriter);
+    if (!p_za) {
         return false;
     }
 
     // process
-    const bool _res = add_item_list(_za, item_paths, zip_root);
+    const bool res = add_item_list(p_za, item_paths, zip_root);
 
-    if (_res) {
-        mz_zip_writer_finalize_archive(_za);
+    if (res) {
+        mz_zip_writer_finalize_archive(p_za);
         qDebug() << "Done";
     }
 
     // cleanup
-    za_close(_za);
+    za_close(p_za);
 
-    return _res;
+    return res;
 }
 
-bool add_item_data(mz_zip_archive *p_zip, const QString &_item_path, const QByteArray &_data)
+bool add_item_data(mz_zip_archive *p_zip, const QString &item_path, const QByteArray &data)
 {
-    qDebug() << "Adding:" << _item_path;
+    qDebug() << "Adding:" << item_path;
 
     if (!mz_zip_writer_add_mem(p_zip,
-                               _item_path.toUtf8().constData(),
-                               _data.constData(),
-                               _data.size(),
-                               compressLevel(_data.size())))
+                               item_path.toUtf8().constData(),
+                               data.constData(),
+                               data.size(),
+                               compressLevel(data.size())))
     {
-        qWarning() << "Failed to compress file:" << _item_path;
+        qWarning() << "Failed to compress file:" << item_path;
         return false;
     }
 
@@ -155,23 +155,23 @@ bool extract_to_file(mz_zip_archive* pZip, int file_index, const QString &outpat
 
 QByteArray extract_to_buffer(mz_zip_archive* pZip, int file_index, bool copy_data)
 {
-    size_t __size = 0;
-    char *_c = (char*)mz_zip_reader_extract_to_heap(pZip, file_index, &__size, 0);
+    size_t data_size = 0;
+    char *ch_data = (char*)mz_zip_reader_extract_to_heap(pZip, file_index, &data_size, 0);
 
-    if (_c) {
+    if (ch_data) {
         if (copy_data) {
             // COPY data to QByteArray
-            QByteArray __b(_c, __size);
+            QByteArray __ba(ch_data, data_size);
 
             // clear extracted from heap
-            delete _c;
+            delete ch_data;
 
-            return __b;
+            return __ba;
         }
 
         // Reference to the data in the QByteArray.
         // Data should be deleted on the caller side: delete _array.constData();
-        return QByteArray::fromRawData(_c, __size);
+        return QByteArray::fromRawData(ch_data, data_size);
     }
 
     qWarning() << "Failed to extract file:" << file_index;
@@ -185,37 +185,37 @@ bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder)
         return false;
     }
 
-    const int _num_items = mz_zip_reader_get_num_files(pZip);
+    const int num_items = mz_zip_reader_get_num_files(pZip);
 
-    if (_num_items == 0) {
+    if (num_items == 0) {
         qDebug() << "No files to extract";
         return false;
     }
 
-    qDebug() << "Extracting" << _num_items << "items to:" << output_folder;
+    qDebug() << "Extracting" << num_items << "items to:" << output_folder;
 
     // extracting...
     bool is_success = true;
-    for (int it = 0; it < _num_items; ++it) {
-        const QString _filename = za_item_name(pZip, it);
+    for (int it = 0; it < num_items; ++it) {
+        const QString filename = za_item_name(pZip, it);
 
-        qDebug() << "Extracting:" << (it + 1) << '/' << _num_items << _filename;
+        qDebug() << "Extracting:" << (it + 1) << '/' << num_items << filename;
 
-        const QString _outpath = joinPath(output_folder, _filename);
+        const QString outpath = joinPath(output_folder, filename);
 
         // create new path on the disk
-        const QString _parent_folder = QFileInfo(_outpath).absolutePath();
-        if (!createFolder(_parent_folder)) {
+        const QString parent_folder = QFileInfo(outpath).absolutePath();
+        if (!createFolder(parent_folder)) {
             is_success = false;
             break;
         }
 
         // subfolder, no data to extract
-        if (_filename.endsWith(s_sep))
+        if (filename.endsWith(s_sep))
             continue;
 
         // extract file
-        if (!extract_to_file(pZip, it, _outpath)) {
+        if (!extract_to_file(pZip, it, outpath)) {
             is_success = false;
             break;
         }
@@ -227,20 +227,20 @@ bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder)
 
 QStringList folderContent(const QString &folder, bool addRoot)
 {
-    QStringList _items;
+    QStringList items;
 
     if (addRoot) // add root folder
-        _items << folder;
+        items << folder;
 
     QDirIterator it(folder,
                     QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::NoSymLinks | QDir::Hidden,
                     QDirIterator::Subdirectories);
 
     while (it.hasNext()) {
-        _items << it.next();
+        items << it.next();
     }
 
-    return _items;
+    return items;
 }
 
 bool createFolder(const QString &path)

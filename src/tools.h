@@ -32,7 +32,7 @@ QString za_item_name(mz_zip_archive* pZip, int file_index);
 bool createArchive(const QString &zip_path, const QStringList &item_paths, const QString &zip_root);
 
 // adds to the archive an entry with file or folder data
-bool add_item_data(mz_zip_archive *p_zip, const QString &_item_path, const QByteArray &_data);
+bool add_item_data(mz_zip_archive *p_zip, const QString &item_path, const QByteArray &data);
 
 // adds an empty subfolder item to the zip; 'in_path' is the path inside the archive
 bool add_item_folder(mz_zip_archive *p_zip, const QString &in_path);
