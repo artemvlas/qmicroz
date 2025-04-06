@@ -35,7 +35,7 @@ struct BufFile {
 
     QString m_name;       // file name (path inside the archive)
     QByteArray m_data;    // file data (uncompressed)
-    QDateTime m_modified; // date and time of the file's last modification
+    QDateTime m_modified; // last modified date and time
 }; // struct BufFile
 
 // list of files {index : path} contained in the archive

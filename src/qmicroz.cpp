@@ -204,18 +204,19 @@ QDateTime QMicroz::lastModified(int index) const
 bool QMicroz::extractAll()
 {
     if (!m_archive) {
-        qDebug() << "No zip archive setted";
+        qWarning() << "No zip archive setted";
         return false;
     }
 
-    return tools::extract_all_to_disk(static_cast<mz_zip_archive*>(m_archive), outputFolder());
+    return tools::extract_all_to_disk(static_cast<mz_zip_archive *>(m_archive),
+                                      outputFolder(), m_verbose);
 }
 
 // !recreate_path >> place in the root of the output folder
 bool QMicroz::extractIndex(int index, bool recreate_path)
 {
     if (!m_archive) {
-        qDebug() << "No zip archive setted";
+        qWarning() << "No zip archive setted";
         return false;
     }
 
