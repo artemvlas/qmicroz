@@ -7,7 +7,7 @@ There is no need to add additional dependencies and deal with low-level APIs.
 ### The project purpose.
 Creation of a minimalist, publicly accessible and most easy to use tool that does not require a long documentation study. The priority is the possibility of embedding into Qt projects with ease, with a reduced number of code lines.
 
-The library is well suitable, for example, for working with the contents of files of common types of documents (*.epub, *.docx, *.odt, *.ver ...), which are essentially packaged archives.
+The library is well suitable, for example, for working with the contents of the common document types (*.epub, *.docx, *.odt ...), which are essentially packaged archives.
 
 ### Key features:
 * Create and extract zip files.\

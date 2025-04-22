@@ -1,5 +1,7 @@
 QMicroz v0.5
 * Added the ability to disable the verbose mode for member functions.
+* Added function BufFile::size for a more convenient obtaining file size.
+* Reference comments have been improved.
 
 QMicroz v0.4
 * It is now possible to request extended information about items contained in the archive.

@@ -74,7 +74,7 @@ public:
     // sets a more verbose output into the terminal (more text)
     void setVerbose(bool enable);
 
-    // -- Info about the Archive --
+    /*** Info about the Archive ***/
     // returns the path to the current zip-file ("m_zip_path")
     const QString& zipFilePath() const;
 
@@ -84,7 +84,7 @@ public:
     // total uncompressed data size (space required for extraction)
     qint64 sizeUncompressed() const;
 
-    // -- Zipped Items Info --
+    /*** Zipped Items Info ***/
     // returns a list of files {index : path} contained in the archive
     const ZipContents& contents() const;
 
@@ -112,7 +112,7 @@ public:
     // returns the file modification date stored in the archive
     QDateTime lastModified(int index) const;
 
-    //  -- Extraction --
+    /*** Extraction ***/
     // extracts the archive into the output folder (or the parent one)
     bool extractAll();
 
@@ -137,7 +137,7 @@ public:
     // QByteArray does NOT own the data! To free memory: delete _array.constData();
     QByteArray extractDataRef(int index) const;
 
-    // -- STATIC functions --
+    /*** STATIC functions ***/
     // extracting the zip into the parent dir
     static bool extract(const QString &zip_path);
 
