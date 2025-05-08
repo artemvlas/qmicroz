@@ -172,6 +172,12 @@ public:
     static bool compress_buf(const QByteArray &data,
                              const QString &file_name, const QString &zip_path);
 
+    // checks whether this data is an archive
+    static bool isArchive(const QByteArray &data);
+
+    // checks the presence of a file, and whether it is an archive
+    static bool isZipFile(const QString &filePath);
+
 private:
     // updates the list of current archive contents
     const ZipContents& updateZipContents();

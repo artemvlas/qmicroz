@@ -569,3 +569,15 @@ int QMicroz::findIndex(const QString &file_name) const
     qDebug() << "Index not found:" << file_name;
     return -1;
 }
+
+bool QMicroz::isArchive(const QByteArray &data)
+{
+    return data.startsWith("PK");
+}
+
+bool QMicroz::isZipFile(const QString &filePath)
+{
+    QFile file(filePath);
+
+    return file.open(QFile::ReadOnly) && isArchive(file.read(2));
+}

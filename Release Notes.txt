@@ -1,5 +1,6 @@
 QMicroz v0.5
 * Added the ability to disable the verbose mode for member functions.
+* Added static functions 'isArchive' and 'isZipFile' to avoid the need to implement such checks in the project code.
 * Added function BufFile::size for a more convenient obtaining file size.
 * Reference comments have been improved.
 
