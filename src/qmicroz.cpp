@@ -473,9 +473,9 @@ bool QMicroz::compress_list(const QStringList &paths, const QString &zip_path)
         return false;
 
     const QString root = QFileInfo(paths.first()).absolutePath();
-    const QString _info = QStringLiteral(u"Zipping: ")
-                          + (paths.size() == 1 ? paths.first() : (QString::number(paths.size()) + QStringLiteral(u" items")));
-    qDebug() << _info;
+    const QString info = paths.size() == 1 ? paths.first() : (QString::number(paths.size()) + QStringLiteral(u" items"));
+
+    qDebug() << "Zipping:" << info;
     qDebug() << "Output:" << zip_path;
 
     // check if all paths are in the same root
