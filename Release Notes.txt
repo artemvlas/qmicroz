@@ -3,6 +3,7 @@ QMicroz v0.5
 * Added static functions 'isArchive' and 'isZipFile' to avoid the need to implement such checks in the project code.
 * Added function BufFile::size for a more convenient obtaining file size.
 * Reference comments have been improved.
+* Added unit tests
 
 QMicroz v0.4
 * It is now possible to request extended information about items contained in the archive.
