@@ -33,6 +33,7 @@ add_library(qmicroz
 # target
 target_link_libraries(qmicroz PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 target_compile_definitions(qmicroz PRIVATE QMICROZ_LIBRARY)
+target_include_directories(qmicroz PUBLIC src)
 
 # unit test
 if(WITH_TESTS)
