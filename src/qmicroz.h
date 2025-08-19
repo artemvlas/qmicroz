@@ -11,10 +11,11 @@
 
 #include <QtCore/qglobal.h>
 
-#if defined(QMICROZ_LIBRARY)
+#if defined(MAKE_SHARED)
 #define QMICROZ_EXPORT Q_DECL_EXPORT
+#pragma message("Symbols Export is Enabled")
 #else
-#define QMICROZ_EXPORT Q_DECL_IMPORT
+#define QMICROZ_EXPORT
 #endif
 
 #include <QStringList>

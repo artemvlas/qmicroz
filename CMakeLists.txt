@@ -32,8 +32,14 @@ add_library(qmicroz
 
 # target
 target_link_libraries(qmicroz PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-target_compile_definitions(qmicroz PRIVATE QMICROZ_LIBRARY)
 target_include_directories(qmicroz PUBLIC src)
+
+if(BUILD_SHARED_LIBS)
+  target_compile_definitions(qmicroz PRIVATE MAKE_SHARED)
+  message("Make SHARED")
+else()
+  message("Make STATIC")
+endif()
 
 # unit test
 if(WITH_TESTS)
