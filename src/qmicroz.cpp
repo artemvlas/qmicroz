@@ -41,7 +41,7 @@ void QMicroz::setVerbose(bool enable)
 
 bool QMicroz::setZipFile(const QString &zip_path)
 {
-    if (QFileInfo(zip_path).isFile()) {
+    if (isZipFile(zip_path)) {
         // try to open zip archive
         mz_zip_archive *p_za = tools::za_new(zip_path, tools::ZaReader);
 
@@ -63,6 +63,11 @@ bool QMicroz::setZipFile(const QString &zip_path)
 
 bool QMicroz::setZipBuffer(const QByteArray &buffered_zip)
 {
+    if (!isArchive(buffered_zip)) {
+        qWarning() << "The byte array is not zipped";
+        return false;
+    }
+
     // open zip archive
     mz_zip_archive *p_za = new mz_zip_archive();
 
@@ -102,13 +107,14 @@ const QString& QMicroz::outputFolder() const
 
 void QMicroz::closeArchive()
 {
-    if (m_archive) {
-        tools::za_close(static_cast<mz_zip_archive *>(m_archive));
-        m_archive = nullptr;
-        m_zip_contents.clear();
-        m_zip_path.clear();
-        m_output_folder.clear();
-    }
+    if (!m_archive)
+        return;
+
+    tools::za_close(static_cast<mz_zip_archive *>(m_archive));
+    m_archive = nullptr;
+    m_zip_contents.clear();
+    m_zip_path.clear();
+    m_output_folder.clear();
 }
 
 const ZipContents& QMicroz::updateZipContents()
@@ -578,6 +584,5 @@ bool QMicroz::isArchive(const QByteArray &data)
 bool QMicroz::isZipFile(const QString &filePath)
 {
     QFile file(filePath);
-
     return file.open(QFile::ReadOnly) && isArchive(file.read(2));
 }
