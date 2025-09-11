@@ -28,15 +28,15 @@ using BufList = QMap<QString, QByteArray>;
 // Used to store a file data in the memory
 struct BufFile {
     BufFile() {}
-    BufFile(const QString &filename, const QByteArray &data)
-        : m_name(filename), m_data(data) {}
+    BufFile(const QString &fileName, const QByteArray &fileData)
+        : name(fileName), data(fileData) {}
 
-    explicit operator bool() const { return !m_name.isEmpty(); }
-    qint64 size() const { return m_data.size(); }
+    explicit operator bool() const { return !name.isEmpty(); }
+    qint64 size() const { return data.size(); }
 
-    QString m_name;       // file name (path inside the archive)
-    QByteArray m_data;    // file data (uncompressed)
-    QDateTime m_modified; // last modified date and time
+    QString name;       // file name (path inside the archive)
+    QByteArray data;    // file data (uncompressed)
+    QDateTime modified; // last modified date and time
 }; // struct BufFile
 
 // list of files {index : path} contained in the archive

@@ -14,18 +14,18 @@ namespace tools {
 mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
 {
     // create and open zip archive
-    mz_zip_archive *p_za = new mz_zip_archive();
+    mz_zip_archive *pZip = new mz_zip_archive();
 
-    bool result = za_type ? mz_zip_writer_init_file(p_za, zip_path.toUtf8().constData(), 0)
-                          : mz_zip_reader_init_file(p_za, zip_path.toUtf8().constData(), 0);
+    bool result = za_type ? mz_zip_writer_init_file(pZip, zip_path.toUtf8().constData(), 0)
+                          : mz_zip_reader_init_file(pZip, zip_path.toUtf8().constData(), 0);
 
     if (!result) {
         qWarning() << "Failed to open zip file:" << zip_path;
-        delete p_za;
+        delete pZip;
         return nullptr;
     }
 
-    return p_za;
+    return pZip;
 }
 
 mz_zip_archive_file_stat za_file_stat(mz_zip_archive *pZip, int file_index)
@@ -64,21 +64,21 @@ bool createArchive(const QString &zip_path, const QStringList &item_paths, const
     }
 
     // create and open the output zip file
-    mz_zip_archive *p_za = za_new(zip_path, ZaWriter);
-    if (!p_za) {
+    mz_zip_archive *pZip = za_new(zip_path, ZaWriter);
+
+    if (!pZip)
         return false;
-    }
 
     // process
-    const bool res = add_item_list(p_za, item_paths, zip_root);
+    const bool res = add_item_list(pZip, item_paths, zip_root);
 
     if (res) {
-        mz_zip_writer_finalize_archive(p_za);
+        mz_zip_writer_finalize_archive(pZip);
         qDebug() << "Done";
     }
 
     // cleanup
-    za_close(p_za);
+    za_close(pZip);
 
     return res;
 }
