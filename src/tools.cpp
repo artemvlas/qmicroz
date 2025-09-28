@@ -123,12 +123,12 @@ bool add_item_list(mz_zip_archive *pZip, const QStringList &items, const QString
 
     // parsing a list of paths
     for (const QString &item : items) {
-        QFileInfo __fi(item);
+        QFileInfo fi(item);
         const QString relPath = dir.relativeFilePath(item);
 
         // adding item
-        if (__fi.isFile() && !add_item_file(pZip, item, relPath)  // file
-            || (__fi.isDir() && !add_item_folder(pZip, relPath))) // subfolder
+        if ((fi.isFile() && !add_item_file(pZip, item, relPath))  // file
+            || (fi.isDir() && !add_item_folder(pZip, relPath)))   // subfolder
         {
             // adding failed
             return false;
