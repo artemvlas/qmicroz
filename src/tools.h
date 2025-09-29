@@ -27,10 +27,6 @@ bool za_close(mz_zip_archive *pZip);
 // returns the name (path) of a file or folder in the archive at the specified index
 QString za_item_name(mz_zip_archive *pZip, int file_index);
 
-// creates an archive at the specified path and adds a list of files and folders to it
-// root is the part of the path relative to which paths in the archive will be created
-bool createArchive(const QString &zip_path, const QStringList &item_paths, const QString &zip_root);
-
 // adds to the archive an entry with file or folder data
 bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteArray &data);
 

@@ -506,7 +506,29 @@ bool QMicroz::compress_list(const QStringList &paths, const QString &zip_path)
             worklist << tools::folderContent(path);
     }
 
-    return tools::createArchive(zip_path, worklist, root);
+    if (worklist.isEmpty()) {
+        qWarning() << "No input paths. Nothing to zip.";
+        return false;
+    }
+
+    // create and open the output zip file
+    mz_zip_archive *pZip = tools::za_new(zip_path, tools::ZaWriter);
+
+    if (!pZip)
+        return false;
+
+    // process
+    const bool res = tools::add_item_list(pZip, worklist, root);
+
+    if (res) {
+        mz_zip_writer_finalize_archive(pZip);
+        qDebug() << worklist.size() << "items zipped";
+    }
+
+    // cleanup
+    tools::za_close(pZip);
+
+    return res;
 }
 
 bool QMicroz::compress_buf(const BufList &buf_data, const QString &zip_path)

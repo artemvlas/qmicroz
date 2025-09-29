@@ -43,7 +43,6 @@ bool za_close(mz_zip_archive *pZip)
 {
     if (pZip && mz_zip_end(pZip)) {
         delete pZip;
-        qDebug() << "Archive closed";
         return true;
     }
 
@@ -54,33 +53,6 @@ bool za_close(mz_zip_archive *pZip)
 QString za_item_name(mz_zip_archive *pZip, int file_index)
 {
     return za_file_stat(pZip, file_index).m_filename;
-}
-
-bool createArchive(const QString &zip_path, const QStringList &item_paths, const QString &zip_root)
-{
-    if (item_paths.isEmpty()) {
-        qWarning() << "No input paths. Nothing to zip.";
-        return false;
-    }
-
-    // create and open the output zip file
-    mz_zip_archive *pZip = za_new(zip_path, ZaWriter);
-
-    if (!pZip)
-        return false;
-
-    // process
-    const bool res = add_item_list(pZip, item_paths, zip_root);
-
-    if (res) {
-        mz_zip_writer_finalize_archive(pZip);
-        qDebug() << "Done";
-    }
-
-    // cleanup
-    za_close(pZip);
-
-    return res;
 }
 
 bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteArray &data)
