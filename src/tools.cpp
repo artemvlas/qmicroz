@@ -200,12 +200,9 @@ bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder, boo
     return is_success;
 }
 
-QStringList folderContent(const QString &folder, bool addRoot)
+QStringList folderContent(const QString &folder)
 {
     QStringList items;
-
-    if (addRoot) // add root folder
-        items << folder;
 
     QDirIterator it(folder,
                     QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::NoSymLinks | QDir::Hidden,

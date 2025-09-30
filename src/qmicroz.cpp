@@ -500,9 +500,9 @@ bool QMicroz::compress_list(const QStringList &paths, const QString &zip_path)
             continue;
         }
 
-        if (fi.isFile())
-            worklist << path;
-        else
+        worklist << path;
+
+        if (fi.isDir())
             worklist << tools::folderContent(path);
     }
 
@@ -560,7 +560,7 @@ bool QMicroz::compress_buf(const BufList &buf_data, const QString &zip_path)
     // cleanup
     mz_zip_writer_finalize_archive(pZip);
     tools::za_close(pZip);
-    qDebug() << "Done";
+    //qDebug() << "Done";
     return true;
 }
 

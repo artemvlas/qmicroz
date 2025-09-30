@@ -48,8 +48,8 @@ QByteArray extract_to_buffer(mz_zip_archive *pZip, int file_index, bool copy_dat
 // extracts the entire contents of the archive into the specified folder
 bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder, bool verbose = true);
 
-// returns a list of folder content paths; addRoot: the root folder is added to the list
-QStringList folderContent(const QString &folder, bool addRoot = true);
+// returns a path list of the folder content: files and subfolders
+QStringList folderContent(const QString &folder);
 
 // creates a folder at the specified path
 // if already exists or created successfully, returns true; otherwise false
