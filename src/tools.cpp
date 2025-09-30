@@ -57,8 +57,6 @@ QString za_item_name(mz_zip_archive *pZip, int file_index)
 
 bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteArray &data)
 {
-    qDebug() << "Adding:" << item_path;
-
     if (!mz_zip_writer_add_mem(pZip,
                                item_path.toUtf8().constData(),
                                data.constData(),
@@ -81,7 +79,6 @@ bool add_item_folder(mz_zip_archive *pZip, const QString &in_path)
 
 bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &in_path)
 {
-    qDebug() << "Adding:" << in_path;
     return mz_zip_writer_add_file(pZip,                             // zip archive
                                   in_path.toUtf8().constData(),     // path inside the zip
                                   fs_path.toUtf8().constData(),     // filesystem path
@@ -89,7 +86,7 @@ bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &
                                   compressLevel(QFileInfo(fs_path).size()));
 }
 
-bool add_item_list(mz_zip_archive *pZip, const QStringList &items, const QString &rootFolder)
+bool add_item_list(mz_zip_archive *pZip, const QStringList &items, const QString &rootFolder, bool verbose)
 {
     QDir dir(rootFolder);
 
@@ -97,6 +94,9 @@ bool add_item_list(mz_zip_archive *pZip, const QStringList &items, const QString
     for (const QString &item : items) {
         QFileInfo fi(item);
         const QString relPath = dir.relativeFilePath(item);
+
+        if (verbose)
+            qDebug() << "Adding:" << relPath;
 
         // adding item
         if ((fi.isFile() && !add_item_file(pZip, item, relPath))  // file

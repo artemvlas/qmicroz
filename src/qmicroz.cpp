@@ -536,19 +536,21 @@ bool QMicroz::compress_buf(const BufList &buf_data, const QString &zip_path)
     qDebug() << "Zipping buffered data to:" << zip_path;
 
     if (buf_data.isEmpty()) {
-        qDebug() << "No input data. Nothing to zip.";
+        qWarning() << "No input data. Nothing to zip.";
         return false;
     }
 
     // create and open the output zip file
     mz_zip_archive *pZip = tools::za_new(zip_path, tools::ZaWriter);
-    if (!pZip) {
+
+    if (!pZip)
         return false;
-    }
 
     // process
     BufList::const_iterator it;
     for (it = buf_data.constBegin(); it != buf_data.constEnd(); ++it) {
+        qDebug() << "Adding:" << it.key();
+
         if (!tools::add_item_data(pZip, it.key(), it.value())) {
             tools::za_close(pZip);
             return false;
