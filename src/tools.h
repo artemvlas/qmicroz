@@ -37,7 +37,7 @@ bool add_item_folder(mz_zip_archive *pZip, const QString &in_path);
 bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &in_path);
 
 // parses the list of file/folder paths and adds them to the archive
-bool add_item_list(mz_zip_archive *pZip, const QStringList &items, const QString &rootFolder, bool verbose = true);
+bool add_item_list(mz_zip_archive *pZip, const QStringList &items, const QString &rootFolder, bool verbose = false);
 
 // extracts a file with the specified index from the archive to disk at the specified path
 bool extract_to_file(mz_zip_archive *pZip, int file_index, const QString &outpath);
@@ -46,7 +46,7 @@ bool extract_to_file(mz_zip_archive *pZip, int file_index, const QString &outpat
 QByteArray extract_to_buffer(mz_zip_archive *pZip, int file_index, bool copy_data = true);
 
 // extracts the entire contents of the archive into the specified folder
-bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder, bool verbose = true);
+bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder, bool verbose = false);
 
 // returns a path list of the folder content: files and subfolders
 QStringList folderContent(const QString &folder);

@@ -20,7 +20,7 @@ mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
                           : mz_zip_reader_init_file(pZip, zip_path.toUtf8().constData(), 0);
 
     if (!result) {
-        qWarning() << "Failed to open zip file:" << zip_path;
+        qWarning() << "QMicroz: Failed to open zip file:" << zip_path;
         delete pZip;
         return nullptr;
     }
@@ -35,7 +35,7 @@ mz_zip_archive_file_stat za_file_stat(mz_zip_archive *pZip, int file_index)
         return file_stat;
     }
 
-    qWarning() << "Failed to get file info:" << file_index;
+    qWarning() << "QMicroz: Failed to get file info:" << file_index;
     return mz_zip_archive_file_stat();
 }
 
@@ -46,7 +46,7 @@ bool za_close(mz_zip_archive *pZip)
         return true;
     }
 
-    qWarning() << "Failed to close archive";
+    qWarning() << "QMicroz: Failed to close archive.";
     return false;
 }
 
@@ -63,7 +63,7 @@ bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteAr
                                data.size(),
                                compressLevel(data.size())))
     {
-        qWarning() << "Failed to compress file:" << item_path;
+        qWarning() << "QMicroz: Failed to compress file:" << item_path;
         return false;
     }
 
@@ -120,7 +120,7 @@ bool extract_to_file(mz_zip_archive *pZip, int file_index, const QString &outpat
         return true;
     }
 
-    qWarning() << "Failed to extract file:" << file_index;
+    qWarning() << "QMicroz: Failed to extract file:" << file_index;
     return false;
 }
 
@@ -145,21 +145,21 @@ QByteArray extract_to_buffer(mz_zip_archive *pZip, int file_index, bool copy_dat
         return QByteArray::fromRawData(ch_data, data_size);
     }
 
-    qWarning() << "Failed to extract file:" << file_index;
+    qWarning() << "QMicroz: Failed to extract file:" << file_index;
     return QByteArray();
 }
 
 bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder, bool verbose)
 {
     if (output_folder.isEmpty()) {
-        qWarning() << "No output folder provided";
+        qWarning() << "QMicroz: No output folder.";
         return false;
     }
 
     const int num_items = mz_zip_reader_get_num_files(pZip);
 
     if (num_items == 0) {
-        qWarning() << "No files to extract";
+        qWarning() << "QMicroz: No files to extract.";
         return false;
     }
 
@@ -223,7 +223,7 @@ bool createFolder(const QString &path)
         return true;
     }
 
-    qWarning() << "Failed to create directory:" << path;
+    qWarning() << "QMicroz: Failed to create directory:" << path;
     return false;
 }
 
