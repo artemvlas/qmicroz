@@ -51,6 +51,7 @@ void test_qmicroz::test_compress_buf_file()
 void test_qmicroz::test_compress_buf_list()
 {
     BufList buf_list = {
+        { "empty_folder/", QByteArray() },
         { "file1.txt", "Random file data 1" },
         { "folder/file2.txt", "Random file data 2" },
         { "folder/file3.txt", "Random file data 3" },
@@ -63,13 +64,23 @@ void test_qmicroz::test_compress_buf_list()
     QMicroz::compress_buf(buf_list, output_file);
 
     QVERIFY(QMicroz::isZipFile(output_file));
-    QCOMPARE(QMicroz(output_file).name(1), "file4.txt");
+
+    QMicroz qmz(output_file);
+
+    QVERIFY(qmz);
+    QVERIFY(qmz.isFolder(0));
+    QVERIFY(qmz.isFolder(qmz.findIndex("empty_folder/")));
+    QVERIFY(qmz.isFile(qmz.findIndex("file4.txt")));
+    QVERIFY(qmz.isFile(qmz.findIndex("folder2/file5.txt")));
 }
 
 void test_qmicroz::test_extract()
 {
     QVERIFY(QMicroz::extract(tmp_test_dir + "/test_compress_buf_list.zip"));
     QVERIFY(QFileInfo::exists(tmp_test_dir + "/folder/file3.txt"));
+    QVERIFY(QFileInfo::exists(tmp_test_dir + "/file4.txt"));
+    QVERIFY(QFileInfo(tmp_test_dir + "/empty_folder").isDir());
+    QVERIFY(QFileInfo(tmp_test_dir + "/folder").isDir());
 }
 
 void test_qmicroz::test_compress_file()
@@ -100,7 +111,10 @@ void test_qmicroz::test_compress_folder()
 
     QVERIFY(qmz.isFolder(0));
     QVERIFY(qmz.isFile(1));
-    QCOMPARE(qmz.name(2), "folder2/file6.txt");
+    QVERIFY(qmz.count() == 3);
+    QVERIFY(qmz.findIndex("folder2/file6.txt") > 0);
+    QVERIFY(qmz.findIndex("file5.txt") > 0);
+    QVERIFY(qmz.findIndex("not_added_file.txt") == -1);
 }
 
 QTEST_APPLESS_MAIN(test_qmicroz)
