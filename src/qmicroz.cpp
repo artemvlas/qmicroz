@@ -161,7 +161,35 @@ const ZipContents& QMicroz::contents() const
 
 int QMicroz::count() const
 {
+    if (!m_archive)
+        return 0;
+
     return mz_zip_reader_get_num_files(static_cast<mz_zip_archive *>(m_archive));
+}
+
+int QMicroz::findIndex(const QString &file_name) const
+{
+    ZipContents::const_iterator it;
+
+    // full path matching
+    for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
+        if (file_name == it.value())
+            return it.key();
+    }
+
+    // deep search, matching only the name
+    if (!file_name.contains(tools::s_sep)) {
+        for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
+            if (!it.value().endsWith('/') // if not a subfolder
+                && file_name == QFileInfo(it.value()).fileName())
+            {
+                return it.key();
+            }
+        }
+    }
+
+    qDebug() << "QMicroz: Index not found:" << file_name;
+    return -1;
 }
 
 bool QMicroz::isFolder(int index) const
@@ -373,7 +401,12 @@ QByteArray QMicroz::extractDataRef(int index) const
                                     index, false);
 }
 
-// STATIC functions ---->>>
+void QMicroz::warningZipNotSet() const
+{
+    qWarning() << "QMicroz: Zip archive is not set.";
+}
+
+/*** STATIC functions ***/
 bool QMicroz::extract(const QString &zip_path)
 {
     // extract to parent folder
@@ -396,72 +429,46 @@ bool QMicroz::extract(const QString &zip_path, const QString &output_folder)
     return is_success;
 }
 
-bool QMicroz::compress_here(const QString &path)
+/*** Compress ***/
+bool QMicroz::compress(const QString &path)
 {
     QFileInfo fi(path);
 
-    if (fi.isFile()) {
-        return compress_file(path);
-    } else if (fi.isDir()) {
-        return compress_folder(path);
-    } else {
+    if (!fi.isFile() && !fi.isDir()) {
         qWarning() << "QMicroz: Wrong path:" << path;
         return false;
     }
+
+    const QString base_name = fi.isFile() ? fi.completeBaseName() : fi.fileName();
+    const QString zip_name = base_name + s_zip_ext;
+    const QString zip_path = tools::joinPath(fi.absolutePath(), zip_name);
+
+    return compress(QStringList(path), zip_path);
 }
 
-bool QMicroz::compress_here(const QStringList &paths)
+bool QMicroz::compress(const QStringList &paths)
 {
     if (paths.isEmpty())
         return false;
 
-    const QString rootfolder = QFileInfo(paths.first()).absolutePath();
-    const QString zipname = QFileInfo(rootfolder).fileName() + s_zip_ext;
-    const QString zippath = tools::joinPath(rootfolder, zipname);
+    const QString root_folder = QFileInfo(paths.first()).absolutePath();
+    const QString zip_name = QFileInfo(root_folder).fileName() + s_zip_ext;
+    const QString zip_path = tools::joinPath(root_folder, zip_name);
 
-    return compress_list(paths, zippath);
+    return compress(paths, zip_path);
 }
 
-bool QMicroz::compress_file(const QString &source_path)
-{
-    QFileInfo fi(source_path);
-    const QString zip_name = fi.completeBaseName() + s_zip_ext;
-    const QString out_path = tools::joinPath(fi.absolutePath(), zip_name);
-
-    return compress_file(source_path, out_path);
-}
-
-bool QMicroz::compress_file(const QString &source_path, const QString &zip_path)
+bool QMicroz::compress(const QString &source_path, const QString &zip_path)
 {
     if (!QFileInfo::exists(source_path)) {
-        qWarning() << "QMicroz: File not found:" << source_path;
+        qWarning() << "QMicroz: Wrong path:" << source_path;
         return false;
     }
 
-    return compress_list({ source_path }, zip_path);
+    return compress(QStringList(source_path), zip_path);
 }
 
-bool QMicroz::compress_folder(const QString &source_path)
-{
-    QFileInfo fi(source_path);
-    const QString file_name = fi.fileName() + s_zip_ext;
-    const QString parent_folder = fi.absolutePath();
-    const QString out_path = tools::joinPath(parent_folder, file_name);
-
-    return compress_folder(source_path, out_path);
-}
-
-bool QMicroz::compress_folder(const QString &source_path, const QString &zip_path)
-{
-    if (!QFileInfo::exists(source_path)) {
-        qWarning() << "QMicroz: Folder not found:" << source_path;
-        return false;
-    }
-
-    return compress_list({ source_path }, zip_path);
-}
-
-bool QMicroz::compress_list(const QStringList &paths, const QString &zip_path)
+bool QMicroz::compress(const QStringList &paths, const QString &zip_path)
 {
     if (paths.isEmpty())
         return false;
@@ -518,7 +525,7 @@ bool QMicroz::compress_list(const QStringList &paths, const QString &zip_path)
     return res;
 }
 
-bool QMicroz::compress_buf(const BufList &buf_data, const QString &zip_path)
+bool QMicroz::compress(const BufList &buf_data, const QString &zip_path)
 {
     if (buf_data.isEmpty()) {
         qWarning() << "QMicroz: No input data.";
@@ -540,45 +547,23 @@ bool QMicroz::compress_buf(const BufList &buf_data, const QString &zip_path)
         }
     }
 
-    // cleanup
+    // success
     mz_zip_writer_finalize_archive(pZip);
     tools::za_close(pZip);
 
     return true;
 }
 
-bool QMicroz::compress_buf(const QByteArray &data, const QString &file_name, const QString &zip_path)
+bool QMicroz::compress(const QString &file_name,
+                       const QByteArray &file_data,
+                       const QString &zip_path)
 {
     BufList buf;
-    buf[file_name] = data;
-    return compress_buf(buf, zip_path);
+    buf[file_name] = file_data;
+    return compress(buf, zip_path);
 }
 
-int QMicroz::findIndex(const QString &file_name) const
-{
-    ZipContents::const_iterator it;
-
-    // full path matching
-    for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
-        if (file_name == it.value())
-            return it.key();
-    }
-
-    // deep search, matching only the name
-    if (!file_name.contains(tools::s_sep)) {
-        for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
-            if (!it.value().endsWith('/') // if not a subfolder
-                && file_name == QFileInfo(it.value()).fileName())
-            {
-                return it.key();
-            }
-        }
-    }
-
-    qDebug() << "QMicroz: Index not found:" << file_name;
-    return -1;
-}
-
+/*** Additional ***/
 bool QMicroz::isArchive(const QByteArray &data)
 {
     return data.startsWith("PK");
@@ -590,7 +575,49 @@ bool QMicroz::isZipFile(const QString &filePath)
     return file.open(QFile::ReadOnly) && isArchive(file.read(2));
 }
 
-void QMicroz::warningZipNotSet() const
+
+/*** OBSOLETE ***/
+bool QMicroz::compress_here(const QString &path)
 {
-    qWarning() << "QMicroz: Zip archive is not set.";
+    return compress(path);
+}
+
+bool QMicroz::compress_here(const QStringList &paths)
+{
+    return compress(paths);
+}
+
+bool QMicroz::compress_file(const QString &source_path)
+{
+    return compress(source_path);
+}
+
+bool QMicroz::compress_file(const QString &source_path, const QString &zip_path)
+{
+    return compress(source_path, zip_path);
+}
+
+bool QMicroz::compress_folder(const QString &source_path)
+{
+    return compress(source_path);
+}
+
+bool QMicroz::compress_folder(const QString &source_path, const QString &zip_path)
+{
+    return compress(source_path, zip_path);
+}
+
+bool QMicroz::compress_list(const QStringList &paths, const QString &zip_path)
+{
+    return compress(paths, zip_path);
+}
+
+bool QMicroz::compress_buf(const BufList &buf_data, const QString &zip_path)
+{
+    return compress(buf_data, zip_path);
+}
+
+bool QMicroz::compress_buf(const QByteArray &data, const QString &file_name, const QString &zip_path)
+{
+    return compress(file_name, data, zip_path);
 }

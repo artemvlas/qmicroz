@@ -24,6 +24,7 @@ private slots:
     void test_extract();
     void test_compress_file();
     void test_compress_folder();
+    void test_data_integrity();
 
 private:
     const QString tmp_test_dir = QDir::currentPath() + "/tmp_test_files";
@@ -43,7 +44,7 @@ void test_qmicroz::test_compress_buf_file()
 {
     QByteArray ba = "Random data to compress. 1234567890.";
     QString output_file = tmp_test_dir + "/test_compress_buf_file.zip";
-    QMicroz::compress_buf(ba, "compressed.txt", output_file);
+    QMicroz::compress("compressed.txt", ba, output_file);
 
     QVERIFY(QMicroz::isZipFile(output_file));
 }
@@ -61,7 +62,7 @@ void test_qmicroz::test_compress_buf_list()
     };
 
     QString output_file = tmp_test_dir + "/test_compress_buf_list.zip";
-    QMicroz::compress_buf(buf_list, output_file);
+    QMicroz::compress(buf_list, output_file);
 
     QVERIFY(QMicroz::isZipFile(output_file));
 
@@ -93,7 +94,7 @@ void test_qmicroz::test_compress_file()
     file.open(QFile::WriteOnly) && file.write(ba);
     file.close();
 
-    QMicroz::compress_file(input_file, output_file);
+    QMicroz::compress(input_file, output_file);
 
     QVERIFY(!QMicroz::isZipFile(input_file));
     QVERIFY(QMicroz::isZipFile(output_file));
@@ -104,7 +105,7 @@ void test_qmicroz::test_compress_folder()
     QString input_folder = tmp_test_dir + "/folder2";
     QString zip_path = input_folder + ".zip";
 
-    QVERIFY(QMicroz::compress_folder(input_folder));
+    QVERIFY(QMicroz::compress(input_folder));
     QVERIFY(QMicroz::isZipFile(zip_path));
 
     QMicroz qmz(zip_path);
@@ -115,6 +116,17 @@ void test_qmicroz::test_compress_folder()
     QVERIFY(qmz.findIndex("folder2/file6.txt") > 0);
     QVERIFY(qmz.findIndex("file5.txt") > 0);
     QVERIFY(qmz.findIndex("not_added_file.txt") == -1);
+}
+
+void test_qmicroz::test_data_integrity()
+{
+    QMicroz::extract(tmp_test_dir + "/test_compress_file.zip", tmp_test_dir + "/data_ckeck");
+
+    QFile file(tmp_test_dir + "/data_ckeck/test_compress_file_(source).txt");
+
+    QVERIFY(file.open(QFile::ReadOnly));
+    const QByteArray readed = file.readAll();
+    QVERIFY(readed == "Random data to file creating. 1234567890.");
 }
 
 QTEST_APPLESS_MAIN(test_qmicroz)

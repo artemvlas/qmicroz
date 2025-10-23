@@ -22,9 +22,6 @@
 #include <QMap>
 #include <QDateTime>
 
-// { "path inside zip" : data }
-using BufList = QMap<QString, QByteArray>;
-
 // Used to store a file data in the memory
 struct BufFile {
     BufFile() {}
@@ -38,6 +35,9 @@ struct BufFile {
     QByteArray data;    // file data (uncompressed)
     QDateTime modified; // last modified date and time
 }; // struct BufFile
+
+// { "path inside zip" : data }
+using BufList = QMap<QString, QByteArray>;
 
 // list of files {index : path} contained in the archive
 using ZipContents = QMap<int, QString>;
@@ -138,46 +138,62 @@ public:
     // QByteArray does NOT own the data! To free memory: delete _array.constData();
     QByteArray extractDataRef(int index) const;
 
+
     /*** STATIC functions ***/
-    // extracting the zip into the parent dir
+    // extracting the zip into the parent folder
     static bool extract(const QString &zip_path);
 
-    // to output_folder
+    // to 'output_folder'
     static bool extract(const QString &zip_path, const QString &output_folder);
 
-    // zips a file or folder (path), >> parent dir
-    static bool compress_here(const QString &path);
+    // zip a file or folder (path), place output zip file to the parent folder
+    static bool compress(const QString &path);
 
-    // paths to files or/and folders
-    static bool compress_here(const QStringList &paths);
+    // zip a list of files and/or folders (paths), output zip name and location based on parent folder
+    static bool compress(const QStringList &paths);
 
-    // zips a file, >> parent dir
-    static bool compress_file(const QString &source_path);
+    // zip a file or folder (path), output to 'zip_path' file
+    static bool compress(const QString &source_path, const QString &zip_path);
 
-    // >> zip_path
-    static bool compress_file(const QString &source_path, const QString &zip_path);
-
-    // zips a folder, >> parent dir
-    static bool compress_folder(const QString &source_path);
-
-    // >> zip_path
-    static bool compress_folder(const QString &source_path, const QString &zip_path);
-
-    // zips a list of files or folders (paths), >> zip_path
-    static bool compress_list(const QStringList &paths, const QString &zip_path);
+    // zip a list of files and/or folders (paths), output to 'zip_path' file
+    static bool compress(const QStringList &paths, const QString &zip_path);
 
     // creates an archive with files from the listed paths and data
-    static bool compress_buf(const BufList &buf_data, const QString &zip_path);
+    static bool compress(const BufList &buf_data, const QString &zip_path);
 
-    // creates an archive (zip_path) containing a file (file_name, data)
-    static bool compress_buf(const QByteArray &data,
-                             const QString &file_name, const QString &zip_path);
+    // creates an archive (zip_path) containing a file (file_name, file_data)
+    // 'file_name' is the displayed file name inside the archive
+    static bool compress(const QString &file_name,
+                         const QByteArray &file_data, const QString &zip_path);
 
     // checks whether this data is an archive
     static bool isArchive(const QByteArray &data);
 
     // checks the presence of a file, and whether it is an archive
     static bool isZipFile(const QString &filePath);
+
+
+    /*** OBSOLETE ***/
+    [[deprecated("Use QMicroz::compress(...) instead.")]]
+    static bool compress_here(const QString &path);
+    [[deprecated("Use QMicroz::compress(...) instead.")]]
+    static bool compress_here(const QStringList &paths);
+    [[deprecated("Use QMicroz::compress(...) instead.")]]
+    static bool compress_file(const QString &source_path);
+    [[deprecated("Use QMicroz::compress(...) instead.")]]
+    static bool compress_file(const QString &source_path, const QString &zip_path);
+    [[deprecated("Use QMicroz::compress(...) instead.")]]
+    static bool compress_folder(const QString &source_path);
+    [[deprecated("Use QMicroz::compress(...) instead.")]]
+    static bool compress_folder(const QString &source_path, const QString &zip_path);
+    [[deprecated("Use QMicroz::compress(...) instead.")]]
+    static bool compress_list(const QStringList &paths, const QString &zip_path);
+    [[deprecated("Use QMicroz::compress(...) instead.")]]
+    static bool compress_buf(const BufList &buf_data, const QString &zip_path);
+    [[deprecated("Use QMicroz::compress(...) instead.")]]
+    static bool compress_buf(const QByteArray &data,
+                             const QString &file_name, const QString &zip_path);
+    /*** OBSOLETE ***/
 
 private:
     // updates the list of current archive contents

@@ -1,5 +1,7 @@
 QMicroz v0.5
 * miniz updated to 3.1.0
+* The names of static compression functions have been merged.
+  multiple comress_FOO() --> single compress(...)
 * Reduced verbosity. Added the ability to enable the verbose mode for member functions.
 * Added static functions 'isArchive' and 'isZipFile' to avoid the need to implement such checks in the project code.
 * Added function BufFile::size for a more convenient obtaining file size.

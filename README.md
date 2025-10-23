@@ -26,10 +26,10 @@ For example:
     QMicroz::extract("zip_file_path");
 
 #### Archiving a folder with custom path to zip
-    QMicroz::compress_folder("source_path", "zip_file_path");
+    QMicroz::compress("source_path", "zip_file_path");
 
 #### Zipping a list of files and/or folders
-    QMicroz::compress_here({"file_path", "folder_path", "file2_path"});
+    QMicroz::compress({"file_path", "folder_path", "file2_path"});
 
 #### UnZipping a file into a memory buffer (non-static)
 ```
