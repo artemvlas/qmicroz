@@ -490,7 +490,7 @@ bool QMicroz::compress(const QStringList &paths, const QString &zip_path)
     // parsing the path list
     for (const QString &path : paths) {
         QFileInfo fi(path);
-        if (!fi.exists() || fi.isSymLink()) {
+        if (!fi.exists()) {
             qWarning() << "QMicroz: Skipped:" << path;
             continue;
         }
