@@ -4,9 +4,9 @@ QMicroz v0.5
   multiple comress_FOO() --> single compress(...)
 * Reduced verbosity. Added the ability to enable the verbose mode for member functions.
 * Added static functions 'isArchive' and 'isZipFile' to avoid the need to implement such checks in the project code.
-* Added function BufFile::size for a more convenient obtaining file size.
 * Shortcuts and symlinks are no longer excluded from the path list.
 * Reference comments have been improved.
+* Improved BufFile handling.
 * Added unit tests.
 * Fixed static build on Windows MinGW.
 

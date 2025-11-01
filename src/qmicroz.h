@@ -25,7 +25,7 @@
 // Used to store a file data in the memory
 struct BufFile {
     BufFile() {}
-    BufFile(const QString &fileName, const QByteArray &fileData)
+    BufFile(const QString &fileName, const QByteArray &fileData = QByteArray())
         : name(fileName), data(fileData) {}
 
     explicit operator bool() const { return !name.isEmpty(); }
@@ -160,6 +160,9 @@ public:
 
     // creates an archive with files from the listed paths and data
     static bool compress(const BufList &buf_data, const QString &zip_path);
+
+    // creates an archive containing single file based on 'buf_file' name and data
+    static bool compress(const BufFile &buf_file, const QString &zip_path);
 
     // creates an archive (zip_path) containing a file (file_name, file_data)
     // 'file_name' is the displayed file name inside the archive

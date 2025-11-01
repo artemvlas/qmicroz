@@ -554,6 +554,11 @@ bool QMicroz::compress(const BufList &buf_data, const QString &zip_path)
     return true;
 }
 
+bool QMicroz::compress(const BufFile &buf_file, const QString &zip_path)
+{
+    return compress(buf_file.name, buf_file.data, zip_path);
+}
+
 bool QMicroz::compress(const QString &file_name,
                        const QByteArray &file_data,
                        const QString &zip_path)
