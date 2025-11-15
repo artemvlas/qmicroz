@@ -53,7 +53,7 @@ if(WITH_TESTS)
   target_link_libraries(test_qmicroz PRIVATE Qt${QT_VERSION_MAJOR}::Test qmicroz)
 endif(WITH_TESTS)
 
-# install [/usr/lib/libqmicroz.so]
+# install [/usr/lib/libqmicroz.so, /usr/include/qmicroz.h]
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(CMAKE_INSTALL_PREFIX "/usr")
 
@@ -62,4 +62,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         BUNDLE DESTINATION .
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
+
+    # install header
+    install(FILES src/qmicroz.h DESTINATION /usr/include)
 endif()

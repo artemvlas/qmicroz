@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# [Arch Linux]
+# [Arch Linux (KDE)]
 # Required packages: make, cmake
 # sudo pacman -S base-devel cmake
 
@@ -24,10 +24,10 @@ pushd "$BUILD_DIR"
 # make the project
 cmake "$REPO_ROOT" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
 
-# build on all CPU cores
-make -j$(nproc)
+# build
+make -j2
 
-# install [/usr/lib/libqmicroz.so]
+# install [/usr/lib/libqmicroz.so, /usr/include/qmicroz.h]
 sudo make install
 
 echo "All done..."
