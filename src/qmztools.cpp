@@ -224,8 +224,20 @@ bool createFolder(const QString &path)
 
 QString joinPath(const QString &abs_path, const QString &rel_path)
 {
-    return endsWithSlash(abs_path) ? abs_path + rel_path
-                                   : abs_path % s_sep % rel_path;
+    auto isSep = [] (QChar ch) { return ch == '/' || ch == '\\'; };
+
+    const bool s1Ends = !abs_path.isEmpty() && isSep(abs_path.back());
+    const bool s2Starts = !rel_path.isEmpty() && isSep(rel_path.front());
+
+    if (s1Ends && s2Starts) {
+        QStringView chopped = QStringView(abs_path).left(abs_path.size() - 1);
+        return chopped % rel_path;
+    }
+
+    if (s1Ends || s2Starts)
+        return abs_path + rel_path;
+
+    return abs_path % s_sep % rel_path;
 }
 
 } // namespace tools

@@ -69,18 +69,6 @@ inline mz_uint compressLevel(qint64 data_size)
     return (data_size > 40) ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION;
 }
 
-// Does the <path> string ends with a slash or backslash (path separator)
-inline bool endsWithSlash(const QString &path)
-{
-    return (path.endsWith('/') || path.endsWith('\\'));
-}
-
-// ...starts with
-inline bool startsWithSlash(const QString &path)
-{
-    return (path.startsWith('/') || path.startsWith('\\'));
-}
-
 } // namespace tools
 
 #endif // QMZTOOLS_H
