@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2024 Artem Vlasenko
 */
-#include "tools.h"
+#include "qmztools.h"
 #include <QDebug>
 #include <QDirIterator>
 #include <QStringBuilder>
@@ -50,11 +50,6 @@ bool za_close(mz_zip_archive *pZip)
     return false;
 }
 
-QString za_item_name(mz_zip_archive *pZip, int file_index)
-{
-    return za_file_stat(pZip, file_index).m_filename;
-}
-
 bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteArray &data)
 {
     if (!mz_zip_writer_add_mem(pZip,
@@ -70,17 +65,17 @@ bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteAr
     return true;
 }
 
-bool add_item_folder(mz_zip_archive *pZip, const QString &in_path)
+bool add_item_folder(mz_zip_archive *pZip, const QString &item_path)
 {
     return add_item_data(pZip,
-                         in_path.endsWith(s_sep) ? in_path : in_path + s_sep,
+                         item_path.endsWith(s_sep) ? item_path : item_path + s_sep,
                          QByteArray());
 }
 
-bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &in_path)
+bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &item_path)
 {
     return mz_zip_writer_add_file(pZip,                             // zip archive
-                                  in_path.toUtf8().constData(),     // path inside the zip
+                                  item_path.toUtf8().constData(),   // path inside the zip
                                   fs_path.toUtf8().constData(),     // filesystem path
                                   NULL, 0,
                                   compressLevel(QFileInfo(fs_path).size()));
@@ -227,20 +222,10 @@ bool createFolder(const QString &path)
     return false;
 }
 
-bool endsWithSlash(const QString &path)
-{
-    return (path.endsWith('/') || path.endsWith('\\'));
-}
-
 QString joinPath(const QString &abs_path, const QString &rel_path)
 {
     return endsWithSlash(abs_path) ? abs_path + rel_path
                                    : abs_path % s_sep % rel_path;
-}
-
-mz_uint compressLevel(qint64 data_size)
-{
-    return (data_size > 40) ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION;
 }
 
 } // namespace tools

@@ -6,7 +6,7 @@
  * Copyright (c) 2024 Artem Vlasenko
 */
 #include "qmicroz.h"
-#include "tools.h"
+#include "qmztools.h"
 #include <QDir>
 #include <QDebug>
 
@@ -258,7 +258,6 @@ bool QMicroz::extractIndex(int index, bool recreate_path)
 
     // create output folder if it doesn't exist
     if (!tools::createFolder(outputFolder())) {
-        qWarning() << "QMicroz: Failed to create folder:" << outputFolder();
         return false;
     }
 

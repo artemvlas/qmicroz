@@ -5,8 +5,8 @@
  *
  * Copyright (c) 2024 Artem Vlasenko
 */
-#ifndef TOOLS_H
-#define TOOLS_H
+#ifndef QMZTOOLS_H
+#define QMZTOOLS_H
 
 #include <QString>
 #include "miniz.h"
@@ -24,17 +24,14 @@ mz_zip_archive_file_stat za_file_stat(mz_zip_archive *pZip, int file_index);
 // closes and deletes the archive
 bool za_close(mz_zip_archive *pZip);
 
-// returns the name (path) of a file or folder in the archive at the specified index
-QString za_item_name(mz_zip_archive *pZip, int file_index);
-
 // adds to the archive an entry with file or folder data
 bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteArray &data);
 
-// adds an empty subfolder item to the zip; 'in_path' is the path inside the archive
-bool add_item_folder(mz_zip_archive *pZip, const QString &in_path);
+// adds an empty subfolder item to the zip; <item_path> is the path/name inside the archive
+bool add_item_folder(mz_zip_archive *pZip, const QString &item_path);
 
-// adds file item and data to zip; 'fs_path' is the filesystem path; 'in_path' is the path inside the archive
-bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &in_path);
+// adds file item and data to zip; 'fs_path' is the filesystem path; 'item_path' is the path inside the archive
+bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &item_path);
 
 // parses the list of file/folder paths and adds them to the archive
 bool add_item_list(mz_zip_archive *pZip, const QStringList &items, const QString &rootFolder, bool verbose = false);
@@ -51,18 +48,39 @@ bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder, boo
 // returns a path list of the folder content: files and subfolders
 QStringList folderContent(const QString &folder);
 
-// creates a folder at the specified path
-// if already exists or created successfully, returns true; otherwise false
-bool createFolder(const QString &path);
-
-// does the path string end with a slash
-bool endsWithSlash(const QString &path);
-
-// connects two parts of a path, checking for the presence of a separator
+// Concatenates path strings, checking for the presence of a separator
 QString joinPath(const QString &abs_path, const QString &rel_path);
 
-// returns "no compression" for micro files, for others by default
-mz_uint compressLevel(qint64 data_size);
+/* Creates a folder at the specified <path>
+ * If already exists or created successfully, returns true; otherwise false
+ */
+bool createFolder(const QString &path);
+
+
+// Returns the name (path) of a file/folder in the archive at the specified index
+inline QString za_item_name(mz_zip_archive *pZip, int file_index)
+{
+    return za_file_stat(pZip, file_index).m_filename;
+}
+
+// Returns "no compression" for micro files, for others by default
+inline mz_uint compressLevel(qint64 data_size)
+{
+    return (data_size > 40) ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION;
+}
+
+// Does the <path> string ends with a slash or backslash (path separator)
+inline bool endsWithSlash(const QString &path)
+{
+    return (path.endsWith('/') || path.endsWith('\\'));
+}
+
+// ...starts with
+inline bool startsWithSlash(const QString &path)
+{
+    return (path.startsWith('/') || path.startsWith('\\'));
+}
+
 } // namespace tools
 
-#endif // TOOLS_H
+#endif // QMZTOOLS_H
