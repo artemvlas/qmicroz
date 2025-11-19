@@ -180,7 +180,7 @@ int QMicroz::findIndex(const QString &file_name) const
     // deep search, matching only the name
     if (!file_name.contains(tools::s_sep)) {
         for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
-            if (!it.value().endsWith('/') // if not a subfolder
+            if (tools::isFileItem(it.value())
                 && file_name == QFileInfo(it.value()).fileName())
             {
                 return it.key();
@@ -194,13 +194,12 @@ int QMicroz::findIndex(const QString &file_name) const
 
 bool QMicroz::isFolder(int index) const
 {
-    return name(index).endsWith(tools::s_sep); // '/'
+    return tools::isFolderItem(name(index));
 }
 
 bool QMicroz::isFile(int index) const
 {
-    const QString item_name = name(index);
-    return !item_name.isEmpty() && !item_name.endsWith(tools::s_sep);
+    return tools::isFileItem(name(index));
 }
 
 QString QMicroz::name(int index) const
@@ -280,7 +279,7 @@ bool QMicroz::extractIndex(int index, bool recreate_path)
     }
 
     // subfolder, no data to extract
-    if (filename.endsWith(tools::s_sep)) {
+    if (tools::isFolderItem(filename)) {
         if (m_verbose)
             qDebug() << "Subfolder extracted";
     }
@@ -319,7 +318,7 @@ BufList QMicroz::extractToBuf() const
             break;
 
         // subfolder, no data to extract
-        if (filename.endsWith(tools::s_sep))
+        if (tools::isFolderItem(filename))
             continue;
 
         if (m_verbose)
@@ -357,7 +356,7 @@ BufFile QMicroz::extractToBuf(int index) const
         return res;
 
     // subfolder, no data to extract
-    if (filename.endsWith(tools::s_sep)) {
+    if (tools::isFolderItem(filename)) {
         if (m_verbose)
             qDebug() << "Subfolder, no data to extract:" << filename;
         return res;

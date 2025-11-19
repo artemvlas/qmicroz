@@ -47,6 +47,9 @@ void test_qmicroz::test_compress_buf_file()
     QMicroz::compress("compressed.txt", ba, output_file);
 
     QVERIFY(QMicroz::isZipFile(output_file));
+
+    QMicroz qmz(output_file);
+    QVERIFY(qmz.isFile(0));
 }
 
 void test_qmicroz::test_compress_buf_list()
@@ -70,6 +73,7 @@ void test_qmicroz::test_compress_buf_list()
 
     QVERIFY(qmz);
     QVERIFY(qmz.isFolder(0));
+    QVERIFY(!qmz.isFile(0));
     QVERIFY(qmz.isFolder(qmz.findIndex("empty_folder/")));
     QVERIFY(qmz.isFile(qmz.findIndex("file4.txt")));
     QVERIFY(qmz.isFile(qmz.findIndex("folder2/file5.txt")));

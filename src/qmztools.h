@@ -69,6 +69,18 @@ inline mz_uint compressLevel(qint64 data_size)
     return (data_size > 40) ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION;
 }
 
+// Checks whether the <item_path> is a sub-folder inside zip
+inline bool isFolderItem(const QString &item_path)
+{
+    return item_path.endsWith(s_sep);
+}
+
+// Checks whether the <item_path> is a file inside zip
+inline bool isFileItem(const QString &item_path)
+{
+    return !item_path.isEmpty() && !item_path.endsWith(s_sep);
+}
+
 } // namespace tools
 
 #endif // QMZTOOLS_H

@@ -68,7 +68,7 @@ bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteAr
 bool add_item_folder(mz_zip_archive *pZip, const QString &item_path)
 {
     return add_item_data(pZip,
-                         item_path.endsWith(s_sep) ? item_path : item_path + s_sep,
+                         isFolderItem(item_path) ? item_path : item_path + s_sep,
                          QByteArray());
 }
 
@@ -179,7 +179,7 @@ bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder, boo
         }
 
         // subfolder, no data to extract
-        if (filename.endsWith(s_sep))
+        if (isFolderItem(filename))
             continue;
 
         // extract file
