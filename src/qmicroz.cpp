@@ -513,9 +513,9 @@ bool QMicroz::compress(const QStringList &paths, const QString &zip_path)
     // process
     const bool res = tools::add_item_list(pZip, worklist, root);
 
-    if (res) {
+    // success
+    if (res)
         mz_zip_writer_finalize_archive(pZip);
-    }
 
     // cleanup
     tools::za_close(pZip);
@@ -554,7 +554,25 @@ bool QMicroz::compress(const BufList &buf_data, const QString &zip_path)
 
 bool QMicroz::compress(const BufFile &buf_file, const QString &zip_path)
 {
-    return compress(buf_file.name, buf_file.data, zip_path);
+    if (!buf_file)
+        return false;
+
+    // create and open the output zip file
+    mz_zip_archive *pZip = tools::za_new(zip_path, tools::ZaWriter);
+
+    if (!pZip)
+        return false;
+
+    // process
+    const bool res = tools::add_item_data(pZip, buf_file.name, buf_file.data, buf_file.modified);
+
+    // success
+    if (res)
+        mz_zip_writer_finalize_archive(pZip);
+
+    tools::za_close(pZip);
+
+    return res;
 }
 
 bool QMicroz::compress(const QString &file_name,

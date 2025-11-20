@@ -42,14 +42,23 @@ test_qmicroz::~test_qmicroz()
 
 void test_qmicroz::test_compress_buf_file()
 {
-    QByteArray ba = "Random data to compress. 1234567890.";
+    // zip random data
+    QByteArray ba = "Random data to compress. 1234567890.\nData. random, random 0987654321!\n";
     QString output_file = tmp_test_dir + "/test_compress_buf_file.zip";
-    QMicroz::compress("compressed.txt", ba, output_file);
+    QDateTime dt = QDateTime::fromString("1999-06-21 11:23", "yyyy-MM-dd HH:mm");
+
+    BufFile bufFile("compressed.txt", ba + ba);
+    bufFile.modified = dt;
+
+    QMicroz::compress(bufFile, output_file);
 
     QVERIFY(QMicroz::isZipFile(output_file));
 
+    // open and test the created archive
     QMicroz qmz(output_file);
     QVERIFY(qmz.isFile(0));
+    QCOMPARE(qmz.extractData(0), ba + ba);
+    QCOMPARE(qmz.lastModified(0), dt);
 }
 
 void test_qmicroz::test_compress_buf_list()

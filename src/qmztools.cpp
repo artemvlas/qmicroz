@@ -65,6 +65,21 @@ bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteAr
     return true;
 }
 
+bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteArray &data, const QDateTime &lastModified)
+{
+    time_t modified = lastModified.isValid() ? lastModified.toSecsSinceEpoch() : 0;
+
+    return mz_zip_writer_add_mem_ex_v2(pZip,
+                                       item_path.toUtf8().constData(),   // entry name
+                                       data.constData(),                 // file data
+                                       data.size(),                      // file size
+                                       NULL, 0,
+                                       compressLevel(data.size()),
+                                       0, 0,
+                                       modified > 0 ? &modified : NULL,  // last modified, NULL for current
+                                       NULL, 0, NULL, 0);
+}
+
 bool add_item_folder(mz_zip_archive *pZip, const QString &item_path)
 {
     return add_item_data(pZip,

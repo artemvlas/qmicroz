@@ -23,7 +23,7 @@
 #include <QDateTime>
 
 // Used to store a file data in the memory
-struct BufFile {
+struct QMICROZ_EXPORT BufFile {
     BufFile() {}
     BufFile(const QString &fileName, const QByteArray &fileData = QByteArray())
         : name(fileName), data(fileData) {}

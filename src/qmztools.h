@@ -9,6 +9,7 @@
 #define QMZTOOLS_H
 
 #include <QString>
+#include <QDateTime>
 #include "miniz.h"
 
 namespace tools {
@@ -24,13 +25,24 @@ mz_zip_archive_file_stat za_file_stat(mz_zip_archive *pZip, int file_index);
 // closes and deletes the archive
 bool za_close(mz_zip_archive *pZip);
 
-// adds to the archive an entry with file or folder data
+/* Adds to the archive a file or folder entry.
+ * <item_path> is a name/path inside the archive, <data> is the file data.
+ * To add a folder entry, <item_path> should end with a slash ('/'), and the <data> array must be empty.
+ * Or just use <add_item_folder> function.
+ */
 bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteArray &data);
+bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteArray &data,
+                   const QDateTime &lastModified);
 
-// adds an empty subfolder item to the zip; <item_path> is the path/name inside the archive
+/* Adds a folder entry (an empty subfolder) to the zip.
+ * <item_path> is the folder name/path inside the archive.
+ * Appending slash to the <item_path> string is NOT required (automatically).
+ */
 bool add_item_folder(mz_zip_archive *pZip, const QString &item_path);
 
-// adds file item and data to zip; 'fs_path' is the filesystem path; 'item_path' is the path inside the archive
+/* Adds a file entry and its data to the zip.
+ * <fs_path> is the filesystem path; <item_path> is the name/path inside the archive.
+ */
 bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &item_path);
 
 // parses the list of file/folder paths and adds them to the archive
