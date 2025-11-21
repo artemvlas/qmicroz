@@ -13,7 +13,7 @@
 namespace tools {
 mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
 {
-    // create and open zip archive
+    // create and open a zip archive
     mz_zip_archive *pZip = new mz_zip_archive();
 
     bool result = za_type ? mz_zip_writer_init_file(pZip, zip_path.toUtf8().constData(), 0)
@@ -215,7 +215,7 @@ QStringList folderContent(const QString &folder)
     QStringList items;
 
     QDirIterator it(folder,
-                    QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::NoSymLinks | QDir::Hidden,
+                    QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden,
                     QDirIterator::Subdirectories);
 
     while (it.hasNext()) {
