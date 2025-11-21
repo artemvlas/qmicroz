@@ -5,6 +5,11 @@
  *
  * Copyright (c) 2024 Artem Vlasenko
 */
+
+#define WARNING_ZIPNOTSET "QMicroz: Zip archive is not set."
+#define WARNING_WRONGPATH "QMicroz: Wrong path:"
+#define WARNING_NOINPUTDATA "QMicroz: No input data."
+
 #include "qmicroz.h"
 #include "qmztools.h"
 #include <QDir>
@@ -57,7 +62,7 @@ bool QMicroz::setZipFile(const QString &zip_path)
         }
     }
 
-    qWarning() << "QMicroz: Wrong path:" << zip_path;
+    qWarning() << WARNING_WRONGPATH << zip_path;
     return false;
 }
 
@@ -236,7 +241,7 @@ QDateTime QMicroz::lastModified(int index) const
 bool QMicroz::extractAll()
 {
     if (!m_archive) {
-        warningZipNotSet();
+        qWarning() << WARNING_ZIPNOTSET;
         return false;
     }
 
@@ -248,7 +253,7 @@ bool QMicroz::extractAll()
 bool QMicroz::extractIndex(int index, bool recreate_path)
 {
     if (!m_archive) {
-        warningZipNotSet();
+        qWarning() << WARNING_ZIPNOTSET;
         return false;
     }
 
@@ -304,7 +309,7 @@ BufList QMicroz::extractToBuf() const
     BufList res;
 
     if (!m_archive) {
-        warningZipNotSet();
+        qWarning() << WARNING_ZIPNOTSET;
         return res;
     }
 
@@ -341,7 +346,7 @@ BufFile QMicroz::extractToBuf(int index) const
     BufFile res;
 
     if (!m_archive) {
-        warningZipNotSet();
+        qWarning() << WARNING_ZIPNOTSET;
         return res;
     }
 
@@ -399,10 +404,6 @@ QByteArray QMicroz::extractDataRef(int index) const
                                     index, false);
 }
 
-void QMicroz::warningZipNotSet() const
-{
-    qWarning() << "QMicroz: Zip archive is not set.";
-}
 
 /*** STATIC functions ***/
 bool QMicroz::extract(const QString &zip_path)
@@ -433,7 +434,7 @@ bool QMicroz::compress(const QString &path)
     QFileInfo fi(path);
 
     if (!fi.isFile() && !fi.isDir()) {
-        qWarning() << "QMicroz: Wrong path:" << path;
+        qWarning() << WARNING_WRONGPATH << path;
         return false;
     }
 
@@ -459,7 +460,7 @@ bool QMicroz::compress(const QStringList &paths)
 bool QMicroz::compress(const QString &source_path, const QString &zip_path)
 {
     if (!QFileInfo::exists(source_path)) {
-        qWarning() << "QMicroz: Wrong path:" << source_path;
+        qWarning() << WARNING_WRONGPATH << source_path;
         return false;
     }
 
@@ -500,7 +501,7 @@ bool QMicroz::compress(const QStringList &paths, const QString &zip_path)
     }
 
     if (worklist.isEmpty()) {
-        qWarning() << "QMicroz: No input paths.";
+        qWarning() << WARNING_NOINPUTDATA;
         return false;
     }
 
@@ -526,7 +527,7 @@ bool QMicroz::compress(const QStringList &paths, const QString &zip_path)
 bool QMicroz::compress(const BufList &buf_data, const QString &zip_path)
 {
     if (buf_data.isEmpty()) {
-        qWarning() << "QMicroz: No input data.";
+        qWarning() << WARNING_NOINPUTDATA;
         return false;
     }
 

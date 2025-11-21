@@ -202,9 +202,6 @@ private:
     // updates the list of current archive contents
     const ZipContents& updateZipContents();
 
-    // Default hint in case the 'm_archive' is not set
-    void warningZipNotSet() const;
-
     // the void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;
 
