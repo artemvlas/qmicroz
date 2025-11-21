@@ -114,7 +114,7 @@ public:
     QDateTime lastModified(int index) const;
 
     /*** Extraction ***/
-    // extracts the archive into the output folder (or the parent one)
+    // Extracts the entire contents of the archive into the output folder (the parent one if not set)
     bool extractAll();
 
     // extracts the file with index to disk
@@ -199,25 +199,25 @@ public:
     /*** OBSOLETE ***/
 
 private:
-    // updates the list of current archive contents
+    // Updates the list of current archive contents <m_zip_contents>
     const ZipContents& updateZipContents();
 
-    // the void pointer is used to allow the miniz header not to be included
+    // The void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;
 
-    // whether to display more info into the terminal
+    // Whether to display more info into the terminal
     bool m_verbose = false;
 
-    // path to the current zip file
+    // Path to the current zip file
     QString m_zip_path;
 
-    // folder to place the extracted files
+    // Folder to place the extracted files
     QString m_output_folder;
 
-    // holds the list of current contents { index : filename (or path) }
+    // Holds a list of current zip contents { index : "entry name/path" }
     ZipContents m_zip_contents;
 
-    // ".zip"
+    // Literal ".zip"
     static const QString s_zip_ext;
 
 }; // class QMicroz

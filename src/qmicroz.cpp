@@ -240,25 +240,41 @@ QDateTime QMicroz::lastModified(int index) const
 
 bool QMicroz::extractAll()
 {
-    if (!m_archive) {
-        qWarning() << WARNING_ZIPNOTSET;
+    if (count() == 0) {
+        qWarning() << "QMicroz: No files to extract.";
         return false;
     }
 
-    return tools::extract_all_to_disk(static_cast<mz_zip_archive *>(m_archive),
-                                      outputFolder(), m_verbose);
+    if (m_verbose)
+        qDebug() << "Extracting" << count() << "items to:" << outputFolder();
+
+    for (int i = 0; i < count(); ++i) {
+        if (!extractIndex(i)) {
+            qWarning() << "Extracting failed:" << i << name(i);
+            return false;
+        }
+    }
+
+    if (m_verbose)
+        qDebug() << "Complete.";
+
+    return true;
 }
 
-// !recreate_path >> place in the root of the output folder
 bool QMicroz::extractIndex(int index, bool recreate_path)
 {
+    if (index == -1)
+        return false;
+
     if (!m_archive) {
         qWarning() << WARNING_ZIPNOTSET;
         return false;
     }
 
-    if (index == -1 || outputFolder().isEmpty())
+    if (outputFolder().isEmpty()) {
+        qWarning() << "QMicroz: No output folder.";
         return false;
+    }
 
     // create output folder if it doesn't exist
     if (!tools::createFolder(outputFolder())) {
@@ -272,8 +288,9 @@ bool QMicroz::extractIndex(int index, bool recreate_path)
         return false;
 
     if (m_verbose)
-        qDebug() << "Extracting:" << filename;
+        qDebug() << "Extracting:" << filename; // "Extracting:" << (index + 1) << '/' << count() << filename;
 
+    // <!recreate_path> to place in the root of the output folder
     const QString outpath = tools::joinPath(outputFolder(),
                                             recreate_path ? filename : QFileInfo(filename).fileName());
 
@@ -414,18 +431,12 @@ bool QMicroz::extract(const QString &zip_path)
 
 bool QMicroz::extract(const QString &zip_path, const QString &output_folder)
 {
-    // open zip archive
-    mz_zip_archive *pZip = tools::za_new(zip_path, tools::ZaReader);
-
-    if (!pZip)
+    QMicroz qmz(zip_path);
+    if (!qmz)
         return false;
 
-    // extracting...
-    bool is_success = tools::extract_all_to_disk(pZip, output_folder);
-
-    // finish
-    tools::za_close(pZip);
-    return is_success;
+    qmz.setOutputFolder(output_folder);
+    return qmz.extractAll();
 }
 
 /*** Compress ***/

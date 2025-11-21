@@ -159,57 +159,6 @@ QByteArray extract_to_buffer(mz_zip_archive *pZip, int file_index, bool copy_dat
     return QByteArray();
 }
 
-bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder, bool verbose)
-{
-    if (output_folder.isEmpty()) {
-        qWarning() << "QMicroz: No output folder.";
-        return false;
-    }
-
-    const int num_items = mz_zip_reader_get_num_files(pZip);
-
-    if (num_items == 0) {
-        qWarning() << "QMicroz: No files to extract.";
-        return false;
-    }
-
-    if (verbose)
-        qDebug() << "Extracting" << num_items << "items to:" << output_folder;
-
-    // extracting...
-    bool is_success = true;
-    for (int it = 0; it < num_items; ++it) {
-        const QString filename = za_item_name(pZip, it);
-
-        if (verbose)
-            qDebug() << "Extracting:" << (it + 1) << '/' << num_items << filename;
-
-        const QString outpath = joinPath(output_folder, filename);
-
-        // create new path on the disk
-        const QString parent_folder = QFileInfo(outpath).absolutePath();
-        if (!createFolder(parent_folder)) {
-            is_success = false;
-            break;
-        }
-
-        // subfolder, no data to extract
-        if (isFolderItem(filename))
-            continue;
-
-        // extract file
-        if (!extract_to_file(pZip, it, outpath)) {
-            is_success = false;
-            break;
-        }
-    }
-
-    if (verbose)
-        qDebug() << (is_success ? "Unzip complete." : "Unzip failed.");
-
-    return is_success;
-}
-
 QStringList folderContent(const QString &folder)
 {
     QStringList items;
