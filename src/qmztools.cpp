@@ -174,6 +174,23 @@ QStringList folderContent(const QString &folder)
     return items;
 }
 
+QMap<QString, QString> folderContentRel(const QString &folder)
+{
+    QMap<QString, QString> found;
+    QDir dir(folder);
+
+    QDirIterator it(folder,
+                    QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden,
+                    QDirIterator::Subdirectories);
+
+    while (it.hasNext()) {
+        const QString fullPath = it.next();
+        found.insert(fullPath, dir.relativeFilePath(fullPath));
+    }
+
+    return found;
+}
+
 bool createFolder(const QString &path)
 {
     if (QFileInfo::exists(path)

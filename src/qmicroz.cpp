@@ -7,6 +7,7 @@
 */
 
 #define WARNING_ZIPNOTSET "QMicroz: Zip archive is not set."
+#define WARNING_WRONGMODE "QMicroz: Wrong archive mode."
 #define WARNING_WRONGPATH "QMicroz: Wrong path:"
 #define WARNING_NOINPUTDATA "QMicroz: No input data."
 
@@ -39,6 +40,16 @@ QMicroz::~QMicroz()
     closeArchive();
 }
 
+bool QMicroz::isModeReading() const
+{
+    return tools::zipMode(m_archive) == mz_zip_mode::MZ_ZIP_MODE_READING;
+}
+
+bool QMicroz::isModeWriting() const
+{
+    return tools::zipMode(m_archive) == mz_zip_mode::MZ_ZIP_MODE_WRITING;
+}
+
 void QMicroz::setVerbose(bool enable)
 {
     m_verbose = enable;
@@ -46,20 +57,27 @@ void QMicroz::setVerbose(bool enable)
 
 bool QMicroz::setZipFile(const QString &zip_path)
 {
-    if (isZipFile(zip_path)) {
-        // try to open zip archive
-        mz_zip_archive *pZip = tools::za_new(zip_path, tools::ZaReader);
+    tools::ZaType type = isZipFile(zip_path) ? tools::ZaReader : tools::ZaWriter;
 
-        if (pZip) {
-            // close the currently opened one if any
-            closeArchive();
+    if (type == tools::ZaWriter && QFileInfo::exists(zip_path))
+        return false;
 
-            m_archive = pZip;
-            m_zip_path = zip_path;
+    // try to open zip archive
+    mz_zip_archive *pZip = tools::za_new(zip_path, type);
+
+    if (pZip) {
+        // close the currently opened one if any
+        closeArchive();
+
+        m_archive = pZip;
+        m_zip_path = zip_path;
+
+        if (isModeReading()) {
             updateZipContents();
             setOutputFolder(); // zip file's parent folder
-            return true;
         }
+
+        return true;
     }
 
     qWarning() << WARNING_WRONGPATH << zip_path;
@@ -115,7 +133,12 @@ void QMicroz::closeArchive()
     if (!m_archive)
         return;
 
-    tools::za_close(static_cast<mz_zip_archive *>(m_archive));
+    mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
+
+    if (isModeWriting())
+        mz_zip_writer_finalize_archive(pZip);
+
+    tools::za_close(pZip);
     m_archive = nullptr;
     m_zip_contents.clear();
     m_zip_path.clear();
@@ -238,6 +261,96 @@ QDateTime QMicroz::lastModified(int index) const
     return sec > 0 ? QDateTime::fromSecsSinceEpoch(sec) : QDateTime();
 }
 
+bool QMicroz::addToZip(const QString &source_path)
+{
+    if (!QFileInfo::exists(source_path))
+        return false;
+
+    return addToZip(source_path, QFileInfo(source_path).fileName());
+}
+
+bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
+{
+    if (!m_archive || entry_path.isEmpty() || !QFileInfo::exists(source_path))
+        return false;
+
+    if (!isModeWriting()) {
+        qWarning() << WARNING_WRONGMODE;
+        return false;
+    }
+
+    QFileInfo fi_source(source_path);
+    mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
+
+    if (fi_source.isFile()) {
+        bool res = tools::add_item_file(pZip, source_path, entry_path);
+        if (res)
+            m_zip_contents[m_zip_contents.size()] = entry_path;
+
+        return res;
+    } else if (fi_source.isDir()) {
+        QMap<QString, QString> folderContent;
+        folderContent.insert(source_path, QString());
+        folderContent.insert(tools::folderContentRel(source_path));
+
+        // parsing a list of paths
+        QMap<QString, QString>::const_iterator it;
+        for (it = folderContent.constBegin(); it != folderContent.constEnd(); ++it) {
+            QFileInfo fi(it.key());
+            const QString relPath = tools::joinPath(entry_path, it.value());
+
+            if (m_verbose)
+                qDebug() << "Adding:" << relPath;
+
+            // adding item
+            if (fi.isFile() && tools::add_item_file(pZip, it.key(), relPath)) // file
+                m_zip_contents[m_zip_contents.size()] = relPath;
+            else if (fi.isDir() && tools::add_item_folder(pZip, relPath))     // subfolder
+                m_zip_contents[m_zip_contents.size()] = relPath + '/';
+            else
+                return false; // adding failed
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+bool QMicroz::addToZip(const BufFile &buf_file)
+{
+    if (!isModeWriting()) {
+        qWarning() << WARNING_WRONGMODE;
+        return false;
+    }
+
+    if (!buf_file)
+        return false;
+
+    mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
+
+    bool res = buf_file.name.endsWith('/') ? tools::add_item_folder(pZip, buf_file.name)
+                                           : tools::add_item_data(pZip, buf_file.name, buf_file.data, buf_file.modified);
+
+    if (res)
+        m_zip_contents[m_zip_contents.size()] = buf_file.name;
+
+    return res;
+}
+
+bool QMicroz::addToZip(const BufList &buf_data)
+{
+    BufList::const_iterator it;
+    for (it = buf_data.constBegin(); it != buf_data.constEnd(); ++it) {
+        if (addToZip(BufFile(it.key(), it.value())))
+            m_zip_contents[m_zip_contents.size()] = it.key();
+        else
+            return false;
+    }
+
+    return true;
+}
+
 bool QMicroz::extractAll()
 {
     if (count() == 0) {
@@ -268,6 +381,11 @@ bool QMicroz::extractIndex(int index, bool recreate_path)
 
     if (!m_archive) {
         qWarning() << WARNING_ZIPNOTSET;
+        return false;
+    }
+
+    if (!isModeReading()) {
+        qWarning() << WARNING_WRONGMODE;
         return false;
     }
 
@@ -410,6 +528,11 @@ BufFile QMicroz::extractFileToBuf(const QString &file_name) const
 // Recommended in most cases if speed and memory requirements are not critical.
 QByteArray QMicroz::extractData(int index) const
 {
+    if (!isModeReading()) {
+        qWarning() << WARNING_WRONGMODE;
+        return QByteArray();
+    }
+
     return tools::extract_to_buffer(static_cast<mz_zip_archive *>(m_archive), index);
 }
 
@@ -417,6 +540,11 @@ QByteArray QMicroz::extractData(int index) const
 // but requires an additional delete operation to avoid memory leaks. ( delete _array.constData(); )
 QByteArray QMicroz::extractDataRef(int index) const
 {
+    if (!isModeReading()) {
+        qWarning() << WARNING_WRONGMODE;
+        return QByteArray();
+    }
+
     return tools::extract_to_buffer(static_cast<mz_zip_archive *>(m_archive),
                                     index, false);
 }
@@ -542,49 +670,21 @@ bool QMicroz::compress(const BufList &buf_data, const QString &zip_path)
         return false;
     }
 
-    // create and open the output zip file
-    mz_zip_archive *pZip = tools::za_new(zip_path, tools::ZaWriter);
+    QMicroz qmz(zip_path);
 
-    if (!pZip)
-        return false;
-
-    // process
-    BufList::const_iterator it;
-    for (it = buf_data.constBegin(); it != buf_data.constEnd(); ++it) {
-        if (!tools::add_item_data(pZip, it.key(), it.value())) {
-            tools::za_close(pZip);
-            return false;
-        }
-    }
-
-    // success
-    mz_zip_writer_finalize_archive(pZip);
-    tools::za_close(pZip);
-
-    return true;
+    return qmz && qmz.addToZip(buf_data);
 }
 
 bool QMicroz::compress(const BufFile &buf_file, const QString &zip_path)
 {
-    if (!buf_file)
+    if (!buf_file) {
+        qWarning() << WARNING_NOINPUTDATA;
         return false;
+    }
 
-    // create and open the output zip file
-    mz_zip_archive *pZip = tools::za_new(zip_path, tools::ZaWriter);
+    QMicroz qmz(zip_path);
 
-    if (!pZip)
-        return false;
-
-    // process
-    const bool res = tools::add_item_data(pZip, buf_file.name, buf_file.data, buf_file.modified);
-
-    // success
-    if (res)
-        mz_zip_writer_finalize_archive(pZip);
-
-    tools::za_close(pZip);
-
-    return res;
+    return qmz && qmz.addToZip(buf_file);
 }
 
 bool QMicroz::compress(const QString &file_name,

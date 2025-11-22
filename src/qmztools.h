@@ -57,6 +57,9 @@ QByteArray extract_to_buffer(mz_zip_archive *pZip, int file_index, bool copy_dat
 // Returns a path list of the <folder> content: files and subfolders
 QStringList folderContent(const QString &folder);
 
+// ... { "full path" : "relative path" }
+QMap<QString, QString> folderContentRel(const QString &folder);
+
 // Concatenates path strings, checking for the presence of a separator
 QString joinPath(const QString &abs_path, const QString &rel_path);
 
@@ -65,6 +68,12 @@ QString joinPath(const QString &abs_path, const QString &rel_path);
  */
 bool createFolder(const QString &path);
 
+// Writing or Reading: MZ_ZIP_MODE_READING = 1, MZ_ZIP_MODE_WRITING = 2
+inline mz_zip_mode zipMode(void *pZip)
+{
+    mz_zip_archive *p = static_cast<mz_zip_archive *>(pZip);
+    return p ? p->m_zip_mode : MZ_ZIP_MODE_INVALID;
+}
 
 // Returns the name (path) of a file/folder in the archive at the specified index
 inline QString za_item_name(mz_zip_archive *pZip, int file_index)
