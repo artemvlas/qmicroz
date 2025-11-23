@@ -28,10 +28,12 @@ mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
     return pZip;
 }
 
-mz_zip_archive_file_stat za_file_stat(mz_zip_archive *pZip, int file_index)
+mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index)
 {
+    mz_zip_archive *p = static_cast<mz_zip_archive *>(pZip);
+
     mz_zip_archive_file_stat file_stat;
-    if (mz_zip_reader_file_stat(pZip, file_index, &file_stat)) {
+    if (mz_zip_reader_file_stat(p, file_index, &file_stat)) {
         return file_stat;
     }
 
@@ -96,30 +98,6 @@ bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &
                                   compressLevel(QFileInfo(fs_path).size()));
 }
 
-bool add_item_list(mz_zip_archive *pZip, const QStringList &items, const QString &rootFolder, bool verbose)
-{
-    QDir dir(rootFolder);
-
-    // parsing a list of paths
-    for (const QString &item : items) {
-        QFileInfo fi(item);
-        const QString relPath = dir.relativeFilePath(item);
-
-        if (verbose)
-            qDebug() << "Adding:" << relPath;
-
-        // adding item
-        if ((fi.isFile() && !add_item_file(pZip, item, relPath))  // file
-            || (fi.isDir() && !add_item_folder(pZip, relPath)))   // subfolder
-        {
-            // adding failed
-            return false;
-        }
-    }
-
-    return true;
-}
-
 bool extract_to_file(mz_zip_archive *pZip, int file_index, const QString &outpath)
 {
     if (mz_zip_reader_extract_to_file(pZip,
@@ -159,57 +137,6 @@ QByteArray extract_to_buffer(mz_zip_archive *pZip, int file_index, bool copy_dat
     return QByteArray();
 }
 
-bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder, bool verbose)
-{
-    if (output_folder.isEmpty()) {
-        qWarning() << "QMicroz: No output folder.";
-        return false;
-    }
-
-    const int num_items = mz_zip_reader_get_num_files(pZip);
-
-    if (num_items == 0) {
-        qWarning() << "QMicroz: No files to extract.";
-        return false;
-    }
-
-    if (verbose)
-        qDebug() << "Extracting" << num_items << "items to:" << output_folder;
-
-    // extracting...
-    bool is_success = true;
-    for (int it = 0; it < num_items; ++it) {
-        const QString filename = za_item_name(pZip, it);
-
-        if (verbose)
-            qDebug() << "Extracting:" << (it + 1) << '/' << num_items << filename;
-
-        const QString outpath = joinPath(output_folder, filename);
-
-        // create new path on the disk
-        const QString parent_folder = QFileInfo(outpath).absolutePath();
-        if (!createFolder(parent_folder)) {
-            is_success = false;
-            break;
-        }
-
-        // subfolder, no data to extract
-        if (isFolderItem(filename))
-            continue;
-
-        // extract file
-        if (!extract_to_file(pZip, it, outpath)) {
-            is_success = false;
-            break;
-        }
-    }
-
-    if (verbose)
-        qDebug() << (is_success ? "Unzip complete." : "Unzip failed.");
-
-    return is_success;
-}
-
 QStringList folderContent(const QString &folder)
 {
     QStringList items;
@@ -223,6 +150,23 @@ QStringList folderContent(const QString &folder)
     }
 
     return items;
+}
+
+QMap<QString, QString> folderContentRel(const QString &folder)
+{
+    QMap<QString, QString> found;
+    QDir dir(folder);
+
+    QDirIterator it(folder,
+                    QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden,
+                    QDirIterator::Subdirectories);
+
+    while (it.hasNext()) {
+        const QString fullPath = it.next();
+        found.insert(fullPath, dir.relativeFilePath(fullPath));
+    }
+
+    return found;
 }
 
 bool createFolder(const QString &path)

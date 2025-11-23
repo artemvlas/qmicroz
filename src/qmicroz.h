@@ -39,82 +39,126 @@ struct QMICROZ_EXPORT BufFile {
 // { "path inside zip" : data }
 using BufList = QMap<QString, QByteArray>;
 
-// list of files {index : path} contained in the archive
-using ZipContents = QMap<int, QString>;
+// List of files { "entry name/path" : index } contained in the archive
+using ZipContents = QMap<QString, int>;
 
 class QMICROZ_EXPORT QMicroz
 {
 public:
+    enum Mode { ModeAuto, ModeRead, ModeWrite };
+
     QMicroz();
     ~QMicroz();
 
-    // to avoid ambiguity
-    explicit QMicroz(const char *zip_path);
+    // To avoid ambiguity...
+    explicit QMicroz(const char *zip_path, Mode mode = ModeAuto);
 
-    // path to existing zip file
-    explicit QMicroz(const QString &zip_path);
+    // Sets <zip_path> and opens a new archive for Reading or Writing same as <setZipFile>
+    explicit QMicroz(const QString &zip_path, Mode mode = ModeAuto);
 
     // existing zip archive buffered in memory
     explicit QMicroz(const QByteArray &buffered_zip);
 
-    // checks whether the archive is set
+    // Checks whether the archive is set
     explicit operator bool() const { return (bool)m_archive; }
 
-    // sets and opens the zip for the current object
-    bool setZipFile(const QString &zip_path);
+    // The archive is set for Reading
+    bool isModeReading() const;
 
-    // sets a buffered in memory zip archive
+    // ... for Writing
+    bool isModeWriting() const;
+
+    /* Sets and opens the zip for the current object.
+     * ModeAuto
+     * If <zip_path> is an existing zip archive, opens it for Reading.
+     * If <zip_path> does not exist, opens for Writing.
+     *
+     * ModeRead
+     * If <zip_path> is an existing zip archive, opens it for Reading.
+     * Otherwise returns false.
+     *
+     * ModeWrite
+     * Sets <zip_path> and opens the archive for Writing.
+     * Regardless of the file existence.
+     */
+    bool setZipFile(const QString &zip_path, Mode mode = ModeAuto);
+
+    // Sets a buffered in memory zip archive.
     bool setZipBuffer(const QByteArray &buffered_zip);
 
-    // path to the folder where to place the extracted files; empty --> parent dir
+    // Path to the folder where to place the extracted files; empty --> parent dir
     void setOutputFolder(const QString &output_folder = QString());
 
-    // closes the currently setted zip and clears the member values
+    // Closes the currently opened zip and clears the member values
     void closeArchive();
 
-    // sets a more verbose output into the terminal (more text)
+    // Sets a more verbose output into the terminal (more text)
     void setVerbose(bool enable);
 
     /*** Info about the Archive ***/
     // returns the path to the current zip-file ("m_zip_path")
     const QString& zipFilePath() const;
 
-    // the path to place the extracted files
+    // The path to place the extracted files
     const QString& outputFolder() const;
 
-    // total uncompressed data size (space required for extraction)
+    // Total uncompressed data size (space required for extraction)
     qint64 sizeUncompressed() const;
 
+
     /*** Zipped Items Info ***/
-    // returns a list of files {index : path} contained in the archive
+    // Returns a list of entries { "name/path" : index } contained in the archive
     const ZipContents& contents() const;
 
-    // returns the number of items in the archive
+    // Returns the number of items in the archive
     int count() const;
 
-    // returns the index by the specified <file_name>, -1 if not found
+    // Returns the index by the specified <file_name>, -1 if not found
     int findIndex(const QString &file_name) const;
 
-    // whether the specified index belongs to the folder
+    // Whether the specified index belongs to the folder
     bool isFolder(int index) const;
 
     // ... to the file
     bool isFile(int index) const;
 
-    // returns the name/path corresponding to the index
+    // Returns the name/path corresponding to the index
     QString name(int index) const;
 
-    // returns the compressed size of the file at the specified index
+    // Returns the compressed size of the file at the specified index
     qint64 sizeCompressed(int index) const;
 
-    // the uncompressed size
+    // ...the uncompressed size
     qint64 sizeUncompressed(int index) const;
 
-    // returns the file modification date stored in the archive
+    // Returns the file modification date stored in the archive
     QDateTime lastModified(int index) const;
 
+
+    /*** Adding to the archive ***/
+    // Adds a file or folder (including all contents) to the root of the archive
+    bool addToZip(const QString &source_path);
+
+    /* Adds a file or folder (including contents) to the <entry> name/path.
+     * ("/home/folder/file.txt", "file.txt")        --> "file.txt"
+     * ("/home/folder/file.txt", "folder/file.txt") --> "folder/file.txt"
+     * ("/home/folder/file.txt", "newfile.txt")     --> "newfile.txt"
+     * ("home/folder", "folder")                    --> "folder/", "folder/file.txt"
+     * ("home/folder", "newfolder")                 --> "newfolder/", "newfolder/file.txt"
+     */
+    bool addToZip(const QString &source_path, const QString &entry_path);
+
+    /* Adds a file based on <buf_file> data.
+     * To add an empty folder entry, append '/' to the <buf_file.name>
+     */
+    bool addToZip(const BufFile &buf_file);
+
+    // Adds files from the listed paths and data
+    bool addToZip(const BufList &buf_data);
+
+
     /*** Extraction ***/
-    // extracts the archive into the output folder (or the parent one)
+    // Extracts the entire contents of the archive into the output folder (the parent one if not set)
     bool extractAll();
 
     // extracts the file with index to disk
@@ -140,39 +184,40 @@ public:
 
 
     /*** STATIC functions ***/
-    // extracting the zip into the parent folder
+    // Extracts the zip into the parent folder
     static bool extract(const QString &zip_path);
 
-    // to 'output_folder'
+    // ...to <output_folder>
     static bool extract(const QString &zip_path, const QString &output_folder);
 
-    // zip a file or folder <path>, place output zip file to the parent folder
+    // Zips a file or folder <path>, places the output zip file to the parent folder
     static bool compress(const QString &path);
 
-    // zip a list of files and/or folders <paths>, output zip name and location based on parent folder
+    // Zips a list of files and/or folders <paths>. Output zip path based on parent folder.
     static bool compress(const QStringList &paths);
 
-    // zip a file or folder <path>, output to <zip_path> file
+    // Zips a file or folder <path>, output to <zip_path> file
     static bool compress(const QString &source_path, const QString &zip_path);
 
-    // zip a list of files and/or folders <paths>, output to <zip_path> file
+    // Zips a list of files and/or folders <paths>, output to <zip_path> file
     static bool compress(const QStringList &paths, const QString &zip_path);
 
-    // creates an archive with files from the listed paths and data
+    // Creates an archive with files from the listed paths and data
     static bool compress(const BufList &buf_data, const QString &zip_path);
 
-    // creates an archive containing single file based on <buf_file> name and data
+    // Creates an archive containing a single file based on <buf_file> name and data
     static bool compress(const BufFile &buf_file, const QString &zip_path);
 
-    // creates an archive <zip_path> containing a file (<file_name>, <file_data>)
-    // <file_name> is the displayed file name inside the archive
+    /* Creates an archive <zip_path> containing a file (<file_name>, <file_data>)
+     * <file_name> is the displayed file name inside the archive
+     */
     static bool compress(const QString &file_name,
                          const QByteArray &file_data, const QString &zip_path);
 
-    // checks whether this <data> is an archive
+    // Checks whether the <data> is an archive
     static bool isArchive(const QByteArray &data);
 
-    // checks the presence of a file, and whether it is an archive
+    // Checks the presence of a file, and whether it is an archive
     static bool isZipFile(const QString &filePath);
 
 
@@ -199,25 +244,25 @@ public:
     /*** OBSOLETE ***/
 
 private:
-    // updates the list of current archive contents
+    // Updates the list of current archive contents <m_zip_entries>
     const ZipContents& updateZipContents();
 
-    // the void pointer is used to allow the miniz header not to be included
+    // The void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;
 
-    // whether to display more info into the terminal
+    // Whether to display more info into the terminal
     bool m_verbose = false;
 
-    // path to the current zip file
+    // Path to the current zip file
     QString m_zip_path;
 
-    // folder to place the extracted files
+    // Folder to place the extracted files
     QString m_output_folder;
 
-    // holds the list of current contents { index : filename (or path) }
-    ZipContents m_zip_contents;
+    // Holds a list of current zip contents { "entry name/path" : index }
+    ZipContents m_zip_entries;
 
-    // ".zip"
+    // Literal ".zip"
     static const QString s_zip_ext;
 
 }; // class QMicroz

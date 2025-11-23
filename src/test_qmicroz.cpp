@@ -24,7 +24,11 @@ private slots:
     void test_extract();
     void test_compress_file();
     void test_compress_folder();
+    void test_compress_paths();
     void test_data_integrity();
+    void test_addToZipPath();
+    void test_addToZipPathEntryPath();
+    void test_setZipWriting();
 
 private:
     const QString tmp_test_dir = QDir::currentPath() + "/tmp_test_files";
@@ -56,7 +60,9 @@ void test_qmicroz::test_compress_buf_file()
 
     // open and test the created archive
     QMicroz qmz(output_file);
+    QVERIFY(!qmz.contents().isEmpty());
     QVERIFY(qmz.isFile(0));
+    QVERIFY(qmz.sizeCompressed(0) < qmz.sizeUncompressed(0));
     QCOMPARE(qmz.extractData(0), ba + ba);
     QCOMPARE(qmz.lastModified(0), dt);
 }
@@ -68,6 +74,7 @@ void test_qmicroz::test_compress_buf_list()
         { "file1.txt", "Random file data 1" },
         { "folder/file2.txt", "Random file data 2" },
         { "folder/file3.txt", "Random file data 3" },
+        { "folder/folder/file33.txt", "Random file data 33" },
         { "file4.txt", "Random file data 4" },
         { "folder2/file5.txt", "Random file data 5" },
         { "folder2/file6.txt", "Random file data 6" },
@@ -131,6 +138,22 @@ void test_qmicroz::test_compress_folder()
     QVERIFY(qmz.findIndex("not_added_file.txt") == -1);
 }
 
+void test_qmicroz::test_compress_paths()
+{
+    QStringList paths;
+    paths << (tmp_test_dir + "/folder");
+    paths << (tmp_test_dir + "/folder2/file6.txt");
+    paths << (tmp_test_dir + "/test_compress_file_(source).txt");
+    paths << (tmp_test_dir + "/folder2/file5.txt");
+
+    QString zip_path = tmp_test_dir + "/test_compress_paths.zip";
+    QVERIFY(QMicroz::compress(paths, zip_path));
+
+    QMicroz qmz(zip_path, QMicroz::ModeRead);
+    QVERIFY(qmz.count() > 0);
+    qDebug() << qmz.contents();
+}
+
 void test_qmicroz::test_data_integrity()
 {
     QMicroz::extract(tmp_test_dir + "/test_compress_file.zip", tmp_test_dir + "/data_ckeck");
@@ -140,6 +163,103 @@ void test_qmicroz::test_data_integrity()
     QVERIFY(file.open(QFile::ReadOnly));
     const QByteArray readed = file.readAll();
     QVERIFY(readed == "Random data to file creating. 1234567890.");
+}
+
+void test_qmicroz::test_addToZipPath()
+{
+    QMicroz qmz(tmp_test_dir + "/test_test_addToZipPath.zip");
+
+    QVERIFY(qmz);
+
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/empty_folder"));
+    QVERIFY(!qmz.addToZip(tmp_test_dir + "/empty_folder"));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/data_ckeck"));
+    QVERIFY(!qmz.addToZip(tmp_test_dir + "/data_ckeck"));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/folder2/file6.txt"));
+    QVERIFY(!qmz.addToZip(tmp_test_dir + "/folder2/file6.txt"));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/file4.txt"));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/folder"));
+
+    ZipContents content;
+    content["empty_folder/"] = 0;
+    content["data_ckeck/"] = 1;
+    content["data_ckeck/test_compress_file_(source).txt"] = 2;
+    content["file6.txt"] = 3;
+    content["file4.txt"] = 4;
+    content["folder/"] = 5;
+    content["folder/file2.txt"] = 6;
+    content["folder/file3.txt"] = 7;
+    content["folder/folder/"] = 8;
+    content["folder/folder/file33.txt"] = 9;
+
+    qmz.closeArchive();
+
+    QMicroz qmzRead(tmp_test_dir + "/test_test_addToZipPath.zip");
+
+    QCOMPARE(qmzRead.contents(), content);
+    QVERIFY(qmzRead.isFile(2));
+    QVERIFY(qmzRead.isFolder(0));
+}
+
+void test_qmicroz::test_addToZipPathEntryPath()
+{
+    QMicroz qmz(tmp_test_dir + "/test_addToZipPathEntryPath.zip");
+    //qmz.setVerbose(true);
+
+    QVERIFY(qmz);
+
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/empty_folder", "empty_folder"));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/data_ckeck", "dataCkeck"));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/folder2/file6.txt", "folder2/file6.txt"));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/file4.txt", "file4.txt"));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/folder/folder/file33.txt", "file55.txt"));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/folder2/file6.txt", "fooFolder/file6.txt"));
+
+    ZipContents content;
+    content["empty_folder/"] = 0;
+    content["dataCkeck/"] = 1;
+    content["dataCkeck/test_compress_file_(source).txt"] = 2;
+    content["folder2/file6.txt"] = 3;
+    content["file4.txt"] = 4;
+    content["file55.txt"] = 5;
+    content["fooFolder/file6.txt"] = 6;
+
+    qmz.closeArchive();
+
+    QMicroz qmzRead(tmp_test_dir + "/test_addToZipPathEntryPath.zip");
+
+    QCOMPARE(qmzRead.contents(), content);
+    QVERIFY(qmzRead.isFile(2));
+    QVERIFY(qmzRead.isFolder(0));
+}
+
+void test_qmicroz::test_setZipWriting()
+{
+    QMicroz qmz(tmp_test_dir + "/test_addToZipPathEntryPath.zip");
+    QVERIFY(qmz && !qmz.isModeWriting());
+
+    const QString file_path = tmp_test_dir + "/file4.txt";
+    QVERIFY(QFileInfo::exists(file_path));
+    QVERIFY(!QMicroz::isZipFile(file_path));
+
+    QVERIFY(qmz.setZipFile(file_path, QMicroz::ModeWrite));
+
+    qmz.addToZip(tmp_test_dir + "/file1.txt");
+    qmz.closeArchive();
+
+    QVERIFY(qmz.setZipFile(file_path) && qmz.isModeReading());
+    QVERIFY(qmz.extractData(0) == "Random file data 1");
+
+    QVERIFY(QMicroz::isZipFile(file_path));
+    QVERIFY(qmz.setZipFile(file_path, QMicroz::ModeWrite));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/file1.txt"));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/file1.txt", "file2.txt"));
+    QVERIFY(qmz.count() == 2);
+    qmz.closeArchive();
+
+    QVERIFY(qmz.setZipFile(file_path) && qmz.isModeReading());
+    QVERIFY(qmz.extractData(0) == "Random file data 1");
+    QVERIFY(qmz.extractData(0) == qmz.extractData(qmz.findIndex("file2.txt")));
 }
 
 QTEST_APPLESS_MAIN(test_qmicroz)

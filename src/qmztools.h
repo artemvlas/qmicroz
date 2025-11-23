@@ -16,13 +16,13 @@ namespace tools {
 static const QChar s_sep = u'/';
 enum ZaType { ZaReader, ZaWriter };
 
-// creates and initializes a new archive
+// Creates and initializes a new archive
 mz_zip_archive* za_new(const QString &zip_path, ZaType za_type);
 
-// returns info about the file contained in the archive
-mz_zip_archive_file_stat za_file_stat(mz_zip_archive *pZip, int file_index);
+// Returns info about the file contained in the archive
+mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index);
 
-// closes and deletes the archive
+// Closes and deletes the archive
 bool za_close(mz_zip_archive *pZip);
 
 /* Adds to the archive a file or folder entry.
@@ -45,20 +45,17 @@ bool add_item_folder(mz_zip_archive *pZip, const QString &item_path);
  */
 bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &item_path);
 
-// parses the list of file/folder paths and adds them to the archive
-bool add_item_list(mz_zip_archive *pZip, const QStringList &items, const QString &rootFolder, bool verbose = false);
-
-// extracts a file with the specified index from the archive to disk at the specified path
+// Extracts a file with the specified index from the archive to disk at the specified path
 bool extract_to_file(mz_zip_archive *pZip, int file_index, const QString &outpath);
 
-// extracts file data at the specified index into a buffer
+// Extracts file data at the specified index into a buffer
 QByteArray extract_to_buffer(mz_zip_archive *pZip, int file_index, bool copy_data = true);
 
-// extracts the entire contents of the archive into the specified folder
-bool extract_all_to_disk(mz_zip_archive *pZip, const QString &output_folder, bool verbose = false);
-
-// returns a path list of the folder content: files and subfolders
+// Returns a path list of the <folder> content: files and subfolders
 QStringList folderContent(const QString &folder);
+
+// ... { "full path" : "relative path" }
+QMap<QString, QString> folderContentRel(const QString &folder);
 
 // Concatenates path strings, checking for the presence of a separator
 QString joinPath(const QString &abs_path, const QString &rel_path);
@@ -68,6 +65,12 @@ QString joinPath(const QString &abs_path, const QString &rel_path);
  */
 bool createFolder(const QString &path);
 
+// Writing or Reading: MZ_ZIP_MODE_READING = 1, MZ_ZIP_MODE_WRITING = 2
+inline mz_zip_mode zipMode(void *pZip)
+{
+    mz_zip_archive *p = static_cast<mz_zip_archive *>(pZip);
+    return p ? p->m_zip_mode : MZ_ZIP_MODE_INVALID;
+}
 
 // Returns the name (path) of a file/folder in the archive at the specified index
 inline QString za_item_name(mz_zip_archive *pZip, int file_index)
