@@ -305,34 +305,39 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
         folderContent.insert(source_path, QString());
         folderContent.insert(tools::folderContentRel(source_path));
 
+        bool added = false;
+
         // parsing a list of paths
         QMap<QString, QString>::const_iterator it;
         for (it = folderContent.constBegin(); it != folderContent.constEnd(); ++it) {
             QFileInfo fi(it.key());
             const QString relPath = tools::joinPath(entry_path, it.value());
 
+            // TODO: checking existing entries <m_zip_entries.contains> needs to be automated.
+            // existence check
+            if (fi.isFile() && m_zip_entries.contains(relPath)
+                || fi.isDir() && m_zip_entries.contains(tools::toFolderName(relPath)))
+            {
+                if (m_verbose)
+                    qDebug() << "Exists:" << relPath;
+                continue;
+            }
+
             if (m_verbose)
                 qDebug() << "Adding:" << relPath;
 
-            // TODO: checking existing entries <m_zip_entries.contains> needs to be automated.
             // adding item
-            if (fi.isFile()
-                && !m_zip_entries.contains(relPath)
-                && tools::add_item_file(pZip, it.key(), relPath))
-            {
+            if (fi.isFile() && tools::add_item_file(pZip, it.key(), relPath))
                 m_zip_entries[relPath] = m_zip_entries.size();
-            }
-            else if (fi.isDir()
-                     && !m_zip_entries.contains(relPath + '/')
-                     && tools::add_item_folder(pZip, relPath))
-            {
-                m_zip_entries[relPath + '/'] = m_zip_entries.size();
-            }
+            else if (fi.isDir() && tools::add_item_folder(pZip, relPath))
+                m_zip_entries[tools::toFolderName(relPath)] = m_zip_entries.size();
             else // adding failed
                 return false;
+
+            added = true;
         }
 
-        return true;
+        return added;
     }
 
     return false;

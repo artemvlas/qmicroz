@@ -170,6 +170,7 @@ void test_qmicroz::test_addToZipPath()
     QMicroz qmz(tmp_test_dir + "/test_test_addToZipPath.zip");
 
     QVERIFY(qmz);
+    //qmz.setVerbose(true);
 
     QVERIFY(qmz.addToZip(tmp_test_dir + "/empty_folder"));
     QVERIFY(!qmz.addToZip(tmp_test_dir + "/empty_folder"));

@@ -65,6 +65,12 @@ QString joinPath(const QString &abs_path, const QString &rel_path);
  */
 bool createFolder(const QString &path);
 
+// Appends '/' if not any
+inline QString toFolderName(const QString &name)
+{
+    return name.endsWith(s_sep) ? name : name + s_sep;
+}
+
 // Writing or Reading: MZ_ZIP_MODE_READING = 1, MZ_ZIP_MODE_WRITING = 2
 inline mz_zip_mode zipMode(void *pZip)
 {
