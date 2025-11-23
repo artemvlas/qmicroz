@@ -57,6 +57,9 @@ void QMicroz::setVerbose(bool enable)
 
 bool QMicroz::setZipFile(const QString &zip_path, Mode mode)
 {
+    // close the currently opened one if any
+    closeArchive();
+
     mz_zip_archive *pZip = nullptr;
 
     switch (mode) {
@@ -81,9 +84,6 @@ bool QMicroz::setZipFile(const QString &zip_path, Mode mode)
         qWarning() << WARNING_WRONGPATH << zip_path;
         return false;
     }
-
-    // close the currently opened one if any
-    closeArchive();
 
     m_archive = pZip;
     m_zip_path = zip_path;

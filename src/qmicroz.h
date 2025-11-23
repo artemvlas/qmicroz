@@ -59,15 +59,6 @@ public:
     // existing zip archive buffered in memory
     explicit QMicroz(const QByteArray &buffered_zip);
 
-    // Checks whether the archive is set
-    explicit operator bool() const { return (bool)m_archive; }
-
-    // The archive is set for Reading
-    bool isModeReading() const;
-
-    // ... for Writing
-    bool isModeWriting() const;
-
     /* Sets and opens the zip for the current object.
      * ModeAuto
      * If <zip_path> is an existing zip archive, opens it for Reading.
@@ -95,8 +86,15 @@ public:
     // Sets a more verbose output into the terminal (more text)
     void setVerbose(bool enable);
 
+
     /*** Info about the Archive ***/
-    // returns the path to the current zip-file ("m_zip_path")
+    // The archive is set for Reading
+    bool isModeReading() const;
+
+    // ... for Writing
+    bool isModeWriting() const;
+
+    // Returns the path to the current zip-file ("m_zip_path")
     const QString& zipFilePath() const;
 
     // The path to place the extracted files
@@ -219,6 +217,16 @@ public:
 
     // Checks the presence of a file, and whether it is an archive
     static bool isZipFile(const QString &filePath);
+
+
+    /*** Operators ***/
+    // Checks whether the archive is set
+    explicit operator bool() const { return (bool)m_archive; }
+
+    /* Adds an item to the archive. */
+    bool operator<<(const QString &source_path) { return addToZip(source_path); }
+    bool operator<<(const BufFile &buf_file) { return addToZip(buf_file); }
+    bool operator<<(const BufList &buf_list) { return addToZip(buf_list); }
 
 
     /*** OBSOLETE ***/

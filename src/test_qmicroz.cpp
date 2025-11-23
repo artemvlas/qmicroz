@@ -7,6 +7,7 @@
 */
 
 #include <QtTest/QTest>
+#include <qtestcase.h>
 
 #include "qmicroz.h"
 
@@ -167,19 +168,20 @@ void test_qmicroz::test_data_integrity()
 
 void test_qmicroz::test_addToZipPath()
 {
-    QMicroz qmz(tmp_test_dir + "/test_test_addToZipPath.zip");
+    QString zip_path = tmp_test_dir + "/test_test_addToZipPath.zip";
+    QMicroz qmz(zip_path, QMicroz::ModeWrite);
 
     QVERIFY(qmz);
     //qmz.setVerbose(true);
 
-    QVERIFY(qmz.addToZip(tmp_test_dir + "/empty_folder"));
+    QVERIFY(qmz << (tmp_test_dir + "/empty_folder"));
     QVERIFY(!qmz.addToZip(tmp_test_dir + "/empty_folder"));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/data_ckeck"));
     QVERIFY(!qmz.addToZip(tmp_test_dir + "/data_ckeck"));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/folder2/file6.txt"));
     QVERIFY(!qmz.addToZip(tmp_test_dir + "/folder2/file6.txt"));
-    QVERIFY(qmz.addToZip(tmp_test_dir + "/file4.txt"));
-    QVERIFY(qmz.addToZip(tmp_test_dir + "/folder"));
+    QVERIFY(qmz << (tmp_test_dir + "/file4.txt"));
+    QVERIFY(qmz << (tmp_test_dir + "/folder"));
 
     ZipContents content;
     content["empty_folder/"] = 0;
@@ -193,13 +195,11 @@ void test_qmicroz::test_addToZipPath()
     content["folder/folder/"] = 8;
     content["folder/folder/file33.txt"] = 9;
 
-    qmz.closeArchive();
-
-    QMicroz qmzRead(tmp_test_dir + "/test_test_addToZipPath.zip");
-
-    QCOMPARE(qmzRead.contents(), content);
-    QVERIFY(qmzRead.isFile(2));
-    QVERIFY(qmzRead.isFolder(0));
+    QVERIFY(qmz.setZipFile(zip_path, QMicroz::ModeRead));
+    QCOMPARE(qmz.contents(), content);
+    QVERIFY(qmz.isFile(2));
+    QVERIFY(qmz.isFolder(0));
+    QCOMPARE(qmz.extractData(qmz.findIndex("file4.txt")), "Random file data 4");
 }
 
 void test_qmicroz::test_addToZipPathEntryPath()
