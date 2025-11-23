@@ -571,7 +571,7 @@ bool QMicroz::extract(const QString &zip_path)
 
 bool QMicroz::extract(const QString &zip_path, const QString &output_folder)
 {
-    QMicroz qmz(zip_path);
+    QMicroz qmz(zip_path, ModeRead);
     if (!qmz)
         return false;
 
@@ -620,59 +620,34 @@ bool QMicroz::compress(const QString &source_path, const QString &zip_path)
 
 bool QMicroz::compress(const QStringList &paths, const QString &zip_path)
 {
-    if (paths.isEmpty())
-        return false;
-
-    const QString root = QFileInfo(paths.first()).absolutePath();
-
-    // check if all paths are in the same root
-    if (paths.size() > 1) {
-        for (const QString &path : paths) {
-            if (root != QFileInfo(path).absolutePath()) {
-                qWarning() << "QMicroz: All items must have the same parent folder.";
-                return false;
-            }
-        }
-    }
-
-    QStringList worklist;
-
-    // parsing the path list
-    for (const QString &path : paths) {
-        QFileInfo fi(path);
-        if (!fi.exists()) {
-            qWarning() << "QMicroz: Skipped:" << path;
-            continue;
-        }
-
-        worklist << path;
-
-        if (fi.isDir())
-            worklist << tools::folderContent(path);
-    }
-
-    if (worklist.isEmpty()) {
+    if (paths.isEmpty()) {
         qWarning() << WARNING_NOINPUTDATA;
         return false;
     }
 
-    // create and open the output zip file
-    mz_zip_archive *pZip = tools::za_new(zip_path, tools::ZaWriter);
+    /* At the moment we consider the parent folder of the first item in the list as the relative Root.
+     * Archive entries are created relative to this root.
+     * Paths from the list that do not have a common root are placed in the root of the archive.
+     *
+     * TODO: needed a smarter function for parsing paths and building internal entries based on multiple roots.
+     */
+    const QString root = QFileInfo(paths.first()).absolutePath();
+    QDir dir(root);
 
-    if (!pZip)
+    QMicroz qmz(zip_path, ModeWrite);
+    if (!qmz)
         return false;
 
     // process
-    const bool res = tools::add_item_list(pZip, worklist, root);
+    for (const QString &path : paths) {
+        QString relPath = path.startsWith(root) ? dir.relativeFilePath(path)
+                                                : QFileInfo(path).fileName();
 
-    // success
-    if (res)
-        mz_zip_writer_finalize_archive(pZip);
+        if (!qmz.addToZip(path, relPath))
+            qWarning() << "QMicroz: Unable to add:" << path;
+    }
 
-    // cleanup
-    tools::za_close(pZip);
-
-    return res;
+    return qmz.count() > 0;
 }
 
 bool QMicroz::compress(const BufList &buf_data, const QString &zip_path)
@@ -703,7 +678,8 @@ bool QMicroz::compress(const QString &file_name,
                        const QByteArray &file_data,
                        const QString &zip_path)
 {
-    BufFile buf(file_data, file_data);
+    BufList buf;
+    buf[file_name] = file_data;
     return compress(buf, zip_path);
 }
 

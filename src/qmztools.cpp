@@ -96,30 +96,6 @@ bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &
                                   compressLevel(QFileInfo(fs_path).size()));
 }
 
-bool add_item_list(mz_zip_archive *pZip, const QStringList &items, const QString &rootFolder, bool verbose)
-{
-    QDir dir(rootFolder);
-
-    // parsing a list of paths
-    for (const QString &item : items) {
-        QFileInfo fi(item);
-        const QString relPath = dir.relativeFilePath(item);
-
-        if (verbose)
-            qDebug() << "Adding:" << relPath;
-
-        // adding item
-        if ((fi.isFile() && !add_item_file(pZip, item, relPath))  // file
-            || (fi.isDir() && !add_item_folder(pZip, relPath)))   // subfolder
-        {
-            // adding failed
-            return false;
-        }
-    }
-
-    return true;
-}
-
 bool extract_to_file(mz_zip_archive *pZip, int file_index, const QString &outpath)
 {
     if (mz_zip_reader_extract_to_file(pZip,

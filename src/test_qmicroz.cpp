@@ -24,6 +24,7 @@ private slots:
     void test_extract();
     void test_compress_file();
     void test_compress_folder();
+    void test_compress_paths();
     void test_data_integrity();
     void test_addToZipPath();
     void test_addToZipPathEntryPath();
@@ -135,6 +136,22 @@ void test_qmicroz::test_compress_folder()
     QVERIFY(qmz.findIndex("folder2/file6.txt") > 0);
     QVERIFY(qmz.findIndex("file5.txt") > 0);
     QVERIFY(qmz.findIndex("not_added_file.txt") == -1);
+}
+
+void test_qmicroz::test_compress_paths()
+{
+    QStringList paths;
+    paths << (tmp_test_dir + "/folder");
+    paths << (tmp_test_dir + "/folder2/file6.txt");
+    paths << (tmp_test_dir + "/test_compress_file_(source).txt");
+    paths << (tmp_test_dir + "/folder2/file5.txt");
+
+    QString zip_path = tmp_test_dir + "/test_compress_paths.zip";
+    QVERIFY(QMicroz::compress(paths, zip_path));
+
+    QMicroz qmz(zip_path, QMicroz::ModeRead);
+    QVERIFY(qmz.count() > 0);
+    qDebug() << qmz.contents();
 }
 
 void test_qmicroz::test_data_integrity()

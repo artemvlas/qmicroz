@@ -45,9 +45,6 @@ bool add_item_folder(mz_zip_archive *pZip, const QString &item_path);
  */
 bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &item_path);
 
-// Parses a list of file/folder paths and adds them to the archive
-bool add_item_list(mz_zip_archive *pZip, const QStringList &items, const QString &rootFolder, bool verbose = false);
-
 // Extracts a file with the specified index from the archive to disk at the specified path
 bool extract_to_file(mz_zip_archive *pZip, int file_index, const QString &outpath);
 
