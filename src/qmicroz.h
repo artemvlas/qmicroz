@@ -45,14 +45,16 @@ using ZipContents = QMap<int, QString>;
 class QMICROZ_EXPORT QMicroz
 {
 public:
+    enum Mode { ModeAuto, ModeRead, ModeWrite };
+
     QMicroz();
     ~QMicroz();
 
     // To avoid ambiguity...
-    explicit QMicroz(const char *zip_path);
+    explicit QMicroz(const char *zip_path, Mode mode = ModeAuto);
 
     // Sets <zip_path> and opens a new archive for Reading or Writing same as <setZipFile>
-    explicit QMicroz(const QString &zip_path);
+    explicit QMicroz(const QString &zip_path, Mode mode = ModeAuto);
 
     // existing zip archive buffered in memory
     explicit QMicroz(const QByteArray &buffered_zip);
@@ -67,50 +69,54 @@ public:
     bool isModeWriting() const;
 
     /* Sets and opens the zip for the current object.
-     * If <zip_path> exists, opens the archive for Reading.
-     * Otherwise for Writing.
-     */
-    bool setZipFile(const QString &zip_path);
-
-    /* Sets and opens the archive for Writing.
+     * ModeAuto
+     * If <zip_path> is an existing zip archive, opens it for Reading.
+     * If <zip_path> does not exist, opens for Writing.
+     *
+     * ModeRead
+     * If <zip_path> is an existing zip archive, opens it for Reading.
+     * Otherwise returns false.
+     *
+     * ModeWrite
+     * Sets <zip_path> and opens the archive for Writing.
      * Regardless of the file existence.
      */
-    bool setZipWriting(const QString &zip_path);
+    bool setZipFile(const QString &zip_path, Mode mode = ModeAuto);
 
-    // sets a buffered in memory zip archive
+    // Sets a buffered in memory zip archive.
     bool setZipBuffer(const QByteArray &buffered_zip);
 
-    // path to the folder where to place the extracted files; empty --> parent dir
+    // Path to the folder where to place the extracted files; empty --> parent dir
     void setOutputFolder(const QString &output_folder = QString());
 
-    // closes the currently setted zip and clears the member values
+    // Closes the currently opened zip and clears the member values
     void closeArchive();
 
-    // sets a more verbose output into the terminal (more text)
+    // Sets a more verbose output into the terminal (more text)
     void setVerbose(bool enable);
 
     /*** Info about the Archive ***/
     // returns the path to the current zip-file ("m_zip_path")
     const QString& zipFilePath() const;
 
-    // the path to place the extracted files
+    // The path to place the extracted files
     const QString& outputFolder() const;
 
-    // total uncompressed data size (space required for extraction)
+    // Total uncompressed data size (space required for extraction)
     qint64 sizeUncompressed() const;
 
 
     /*** Zipped Items Info ***/
-    // returns a list of files {index : path} contained in the archive
+    // Returns a list of files {index : path} contained in the archive
     const ZipContents& contents() const;
 
-    // returns the number of items in the archive
+    // Returns the number of items in the archive
     int count() const;
 
-    // returns the index by the specified <file_name>, -1 if not found
+    // Returns the index by the specified <file_name>, -1 if not found
     int findIndex(const QString &file_name) const;
 
-    // whether the specified index belongs to the folder
+    // Whether the specified index belongs to the folder
     bool isFolder(int index) const;
 
     // ... to the file

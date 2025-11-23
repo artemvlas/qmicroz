@@ -20,14 +20,14 @@ const QString QMicroz::s_zip_ext = QStringLiteral(u".zip");
 
 QMicroz::QMicroz() {}
 
-QMicroz::QMicroz(const char* zip_path)
+QMicroz::QMicroz(const char* zip_path, Mode mode)
 {
-    setZipFile(QString(zip_path));
+    setZipFile(QString(zip_path), mode);
 }
 
-QMicroz::QMicroz(const QString &zip_path)
+QMicroz::QMicroz(const QString &zip_path, Mode mode)
 {
-    setZipFile(zip_path);
+    setZipFile(zip_path, mode);
 }
 
 QMicroz::QMicroz(const QByteArray &buffered_zip)
@@ -55,52 +55,45 @@ void QMicroz::setVerbose(bool enable)
     m_verbose = enable;
 }
 
-bool QMicroz::setZipFile(const QString &zip_path)
+bool QMicroz::setZipFile(const QString &zip_path, Mode mode)
 {
-    tools::ZaType type = isZipFile(zip_path) ? tools::ZaReader : tools::ZaWriter;
+    mz_zip_archive *pZip = nullptr;
 
-    if (type == tools::ZaWriter && QFileInfo::exists(zip_path))
+    switch (mode) {
+    case ModeAuto:
+        if (!QFileInfo::exists(zip_path))
+            pZip = tools::za_new(zip_path, tools::ZaWriter);
+        else if (isZipFile(zip_path))
+            pZip = tools::za_new(zip_path, tools::ZaReader);
+        break;
+    case ModeRead:
+        if (isZipFile(zip_path))
+            pZip = tools::za_new(zip_path, tools::ZaReader);
+        break;
+    case ModeWrite:
+        pZip = tools::za_new(zip_path, tools::ZaWriter);
+        break;
+    default:
+        break;
+    }
+
+    if (!pZip) {
+        qWarning() << WARNING_WRONGPATH << zip_path;
         return false;
-
-    // try to open zip archive
-    mz_zip_archive *pZip = tools::za_new(zip_path, type);
-
-    if (pZip) {
-        // close the currently opened one if any
-        closeArchive();
-
-        m_archive = pZip;
-        m_zip_path = zip_path;
-
-        if (isModeReading()) {
-            updateZipContents();
-            setOutputFolder(); // zip file's parent folder
-        }
-
-        return true;
     }
 
-    qWarning() << WARNING_WRONGPATH << zip_path;
-    return false;
-}
+    // close the currently opened one if any
+    closeArchive();
 
-bool QMicroz::setZipWriting(const QString &zip_path)
-{
-    // try to open zip archive
-    mz_zip_archive *pZip = tools::za_new(zip_path, tools::ZaWriter);
+    m_archive = pZip;
+    m_zip_path = zip_path;
 
-    if (pZip) {
-        // close the currently opened one if any
-        closeArchive();
-
-        m_archive = pZip;
-        m_zip_path = zip_path;
-
-        return true;
+    if (isModeReading()) {
+        updateZipContents();
+        setOutputFolder(); // zip file's parent folder
     }
 
-    qWarning() << WARNING_WRONGPATH << zip_path;
-    return false;
+    return true;
 }
 
 bool QMicroz::setZipBuffer(const QByteArray &buffered_zip)
@@ -689,8 +682,7 @@ bool QMicroz::compress(const BufList &buf_data, const QString &zip_path)
         return false;
     }
 
-    QMicroz qmz;
-    qmz.setZipWriting(zip_path);
+    QMicroz qmz(zip_path, ModeWrite);
 
     return qmz && qmz.addToZip(buf_data);
 }
@@ -702,8 +694,7 @@ bool QMicroz::compress(const BufFile &buf_file, const QString &zip_path)
         return false;
     }
 
-    QMicroz qmz;
-    qmz.setZipWriting(zip_path);
+    QMicroz qmz(zip_path, ModeWrite);
 
     return qmz && qmz.addToZip(buf_file);
 }

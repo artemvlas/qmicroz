@@ -220,21 +220,26 @@ void test_qmicroz::test_setZipWriting()
 
     const QString file_path = tmp_test_dir + "/file4.txt";
     QVERIFY(QFileInfo::exists(file_path));
-    QVERIFY(!qmz.setZipFile(file_path));
-    QVERIFY(qmz.setZipWriting(file_path));
     QVERIFY(!QMicroz::isZipFile(file_path));
+
+    QVERIFY(qmz.setZipFile(file_path, QMicroz::ModeWrite));
 
     qmz.addToZip(tmp_test_dir + "/file1.txt");
     qmz.closeArchive();
 
+    QVERIFY(qmz.setZipFile(file_path) && qmz.isModeReading());
+    QVERIFY(qmz.extractData(0) == "Random file data 1");
+
     QVERIFY(QMicroz::isZipFile(file_path));
-    QVERIFY(qmz.setZipWriting(file_path));
+    QVERIFY(qmz.setZipFile(file_path, QMicroz::ModeWrite));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/file1.txt"));
-    QVERIFY(qmz.count() == 1);
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/file1.txt", "file2.txt"));
+    QVERIFY(qmz.count() == 2);
     qmz.closeArchive();
 
     QVERIFY(qmz.setZipFile(file_path) && qmz.isModeReading());
     QVERIFY(qmz.extractData(0) == "Random file data 1");
+    QVERIFY(qmz.extractData(0) == qmz.extractData(qmz.findIndex("file2.txt")));
 }
 
 QTEST_APPLESS_MAIN(test_qmicroz)
