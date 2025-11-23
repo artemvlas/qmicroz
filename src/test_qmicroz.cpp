@@ -27,6 +27,7 @@ private slots:
     void test_data_integrity();
     void test_addToZipPath();
     void test_addToZipPathEntryPath();
+    void test_setZipWriting();
 
 private:
     const QString tmp_test_dir = QDir::currentPath() + "/tmp_test_files";
@@ -210,6 +211,30 @@ void test_qmicroz::test_addToZipPathEntryPath()
     QCOMPARE(qmzRead.contents(), content);
     QVERIFY(qmzRead.isFile(2));
     QVERIFY(qmzRead.isFolder(0));
+}
+
+void test_qmicroz::test_setZipWriting()
+{
+    QMicroz qmz(tmp_test_dir + "/test_addToZipPathEntryPath.zip");
+    QVERIFY(qmz && !qmz.isModeWriting());
+
+    const QString file_path = tmp_test_dir + "/file4.txt";
+    QVERIFY(QFileInfo::exists(file_path));
+    QVERIFY(!qmz.setZipFile(file_path));
+    QVERIFY(qmz.setZipWriting(file_path));
+    QVERIFY(!QMicroz::isZipFile(file_path));
+
+    qmz.addToZip(tmp_test_dir + "/file1.txt");
+    qmz.closeArchive();
+
+    QVERIFY(QMicroz::isZipFile(file_path));
+    QVERIFY(qmz.setZipWriting(file_path));
+    QVERIFY(qmz.addToZip(tmp_test_dir + "/file1.txt"));
+    QVERIFY(qmz.count() == 1);
+    qmz.closeArchive();
+
+    QVERIFY(qmz.setZipFile(file_path) && qmz.isModeReading());
+    QVERIFY(qmz.extractData(0) == "Random file data 1");
 }
 
 QTEST_APPLESS_MAIN(test_qmicroz)

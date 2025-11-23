@@ -84,6 +84,25 @@ bool QMicroz::setZipFile(const QString &zip_path)
     return false;
 }
 
+bool QMicroz::setZipWriting(const QString &zip_path)
+{
+    // try to open zip archive
+    mz_zip_archive *pZip = tools::za_new(zip_path, tools::ZaWriter);
+
+    if (pZip) {
+        // close the currently opened one if any
+        closeArchive();
+
+        m_archive = pZip;
+        m_zip_path = zip_path;
+
+        return true;
+    }
+
+    qWarning() << WARNING_WRONGPATH << zip_path;
+    return false;
+}
+
 bool QMicroz::setZipBuffer(const QByteArray &buffered_zip)
 {
     if (!isArchive(buffered_zip)) {
@@ -670,7 +689,8 @@ bool QMicroz::compress(const BufList &buf_data, const QString &zip_path)
         return false;
     }
 
-    QMicroz qmz(zip_path);
+    QMicroz qmz;
+    qmz.setZipWriting(zip_path);
 
     return qmz && qmz.addToZip(buf_data);
 }
@@ -682,7 +702,8 @@ bool QMicroz::compress(const BufFile &buf_file, const QString &zip_path)
         return false;
     }
 
-    QMicroz qmz(zip_path);
+    QMicroz qmz;
+    qmz.setZipWriting(zip_path);
 
     return qmz && qmz.addToZip(buf_file);
 }
@@ -691,8 +712,7 @@ bool QMicroz::compress(const QString &file_name,
                        const QByteArray &file_data,
                        const QString &zip_path)
 {
-    BufList buf;
-    buf[file_name] = file_data;
+    BufFile buf(file_data, file_data);
     return compress(buf, zip_path);
 }
 

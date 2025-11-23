@@ -66,11 +66,16 @@ public:
     // ... for Writing
     bool isModeWriting() const;
 
-    /* Sets and opens the zip for the current object
-     * If <zip_path> exists, opens the archive for Reading
-     * If it does not exist, then for Writing
+    /* Sets and opens the zip for the current object.
+     * If <zip_path> exists, opens the archive for Reading.
+     * Otherwise for Writing.
      */
     bool setZipFile(const QString &zip_path);
+
+    /* Sets and opens the archive for Writing.
+     * Regardless of the file existence.
+     */
+    bool setZipWriting(const QString &zip_path);
 
     // sets a buffered in memory zip archive
     bool setZipBuffer(const QByteArray &buffered_zip);
