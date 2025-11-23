@@ -172,22 +172,25 @@ void test_qmicroz::test_addToZipPath()
     QVERIFY(qmz);
 
     QVERIFY(qmz.addToZip(tmp_test_dir + "/empty_folder"));
+    QVERIFY(!qmz.addToZip(tmp_test_dir + "/empty_folder"));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/data_ckeck"));
+    QVERIFY(!qmz.addToZip(tmp_test_dir + "/data_ckeck"));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/folder2/file6.txt"));
+    QVERIFY(!qmz.addToZip(tmp_test_dir + "/folder2/file6.txt"));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/file4.txt"));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/folder"));
 
     ZipContents content;
-    content[0] = "empty_folder/";
-    content[1] = "data_ckeck/";
-    content[2] = "data_ckeck/test_compress_file_(source).txt";
-    content[3] = "file6.txt";
-    content[4] = "file4.txt";
-    content[5] = "folder/";
-    content[6] = "folder/file2.txt";
-    content[7] = "folder/file3.txt";
-    content[8] = "folder/folder/";
-    content[9] = "folder/folder/file33.txt";
+    content["empty_folder/"] = 0;
+    content["data_ckeck/"] = 1;
+    content["data_ckeck/test_compress_file_(source).txt"] = 2;
+    content["file6.txt"] = 3;
+    content["file4.txt"] = 4;
+    content["folder/"] = 5;
+    content["folder/file2.txt"] = 6;
+    content["folder/file3.txt"] = 7;
+    content["folder/folder/"] = 8;
+    content["folder/folder/file33.txt"] = 9;
 
     qmz.closeArchive();
 
@@ -213,13 +216,13 @@ void test_qmicroz::test_addToZipPathEntryPath()
     QVERIFY(qmz.addToZip(tmp_test_dir + "/folder2/file6.txt", "fooFolder/file6.txt"));
 
     ZipContents content;
-    content[0] = "empty_folder/";
-    content[1] = "dataCkeck/";
-    content[2] = "dataCkeck/test_compress_file_(source).txt";
-    content[3] = "folder2/file6.txt";
-    content[4] = "file4.txt";
-    content[5] = "file55.txt";
-    content[6] = "fooFolder/file6.txt";
+    content["empty_folder/"] = 0;
+    content["dataCkeck/"] = 1;
+    content["dataCkeck/test_compress_file_(source).txt"] = 2;
+    content["folder2/file6.txt"] = 3;
+    content["file4.txt"] = 4;
+    content["file55.txt"] = 5;
+    content["fooFolder/file6.txt"] = 6;
 
     qmz.closeArchive();
 

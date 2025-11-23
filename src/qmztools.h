@@ -20,7 +20,7 @@ enum ZaType { ZaReader, ZaWriter };
 mz_zip_archive* za_new(const QString &zip_path, ZaType za_type);
 
 // Returns info about the file contained in the archive
-mz_zip_archive_file_stat za_file_stat(mz_zip_archive *pZip, int file_index);
+mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index);
 
 // Closes and deletes the archive
 bool za_close(mz_zip_archive *pZip);

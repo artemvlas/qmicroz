@@ -152,30 +152,28 @@ void QMicroz::closeArchive()
 
     tools::za_close(pZip);
     m_archive = nullptr;
-    m_zip_contents.clear();
+    m_zip_entries.clear();
     m_zip_path.clear();
     m_output_folder.clear();
 }
 
 const ZipContents& QMicroz::updateZipContents()
 {
-    m_zip_contents.clear();
+    m_zip_entries.clear();
 
     if (!m_archive)
-        return m_zip_contents;
-
-    mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
+        return m_zip_entries;
 
     // iterating...
     for (int it = 0; it < count(); ++it) {
-        const QString filename = tools::za_item_name(pZip, it);
+        const QString filename = name(it);
         if (filename.isEmpty())
             break;
 
-        m_zip_contents[it] = filename;
+        m_zip_entries[filename] = it;
     }
 
-    return m_zip_contents;
+    return m_zip_entries;
 }
 
 qint64 QMicroz::sizeUncompressed() const
@@ -196,7 +194,7 @@ const QString& QMicroz::zipFilePath() const
 
 const ZipContents& QMicroz::contents() const
 {
-    return m_zip_contents;
+    return m_zip_entries;
 }
 
 int QMicroz::count() const
@@ -209,21 +207,19 @@ int QMicroz::count() const
 
 int QMicroz::findIndex(const QString &file_name) const
 {
-    ZipContents::const_iterator it;
-
     // full path matching
-    for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
-        if (file_name == it.value())
-            return it.key();
-    }
+    if (m_zip_entries.contains(file_name))
+        return m_zip_entries.value(file_name);
+
+    ZipContents::const_iterator it;
 
     // deep search, matching only the name
     if (!file_name.contains(tools::s_sep)) {
-        for (it = m_zip_contents.constBegin(); it != m_zip_contents.constEnd(); ++it) {
-            if (tools::isFileItem(it.value())
-                && file_name == QFileInfo(it.value()).fileName())
+        for (it = m_zip_entries.constBegin(); it != m_zip_entries.constEnd(); ++it) {
+            if (tools::isFileItem(it.key())
+                && file_name == QFileInfo(it.key()).fileName())
             {
-                return it.key();
+                return it.value();
             }
         }
     }
@@ -244,7 +240,7 @@ bool QMicroz::isFile(int index) const
 
 QString QMicroz::name(int index) const
 {
-    return contents().value(index);
+    return tools::za_file_stat(m_archive, index).m_filename;
 }
 
 qint64 QMicroz::sizeCompressed(int index) const
@@ -252,7 +248,7 @@ qint64 QMicroz::sizeCompressed(int index) const
     if (!m_archive)
         return 0;
 
-    return tools::za_file_stat(static_cast<mz_zip_archive *>(m_archive), index).m_comp_size;
+    return tools::za_file_stat(m_archive, index).m_comp_size;
 }
 
 qint64 QMicroz::sizeUncompressed(int index) const
@@ -260,7 +256,7 @@ qint64 QMicroz::sizeUncompressed(int index) const
     if (!m_archive)
         return 0;
 
-    return tools::za_file_stat(static_cast<mz_zip_archive *>(m_archive), index).m_uncomp_size;
+    return tools::za_file_stat(m_archive, index).m_uncomp_size;
 }
 
 QDateTime QMicroz::lastModified(int index) const
@@ -268,7 +264,7 @@ QDateTime QMicroz::lastModified(int index) const
     if (!m_archive)
         return QDateTime();
 
-    const qint64 sec = tools::za_file_stat(static_cast<mz_zip_archive *>(m_archive), index).m_time;
+    const qint64 sec = tools::za_file_stat(m_archive, index).m_time;
 
     return sec > 0 ? QDateTime::fromSecsSinceEpoch(sec) : QDateTime();
 }
@@ -283,8 +279,9 @@ bool QMicroz::addToZip(const QString &source_path)
 
 bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
 {
-    if (!m_archive || entry_path.isEmpty() || !QFileInfo::exists(source_path))
+    if (!m_archive || entry_path.isEmpty() || !QFileInfo::exists(source_path)) {
         return false;
+    }
 
     if (!isModeWriting()) {
         qWarning() << WARNING_WRONGMODE;
@@ -295,9 +292,12 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
     mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
 
     if (fi_source.isFile()) {
+        if (m_zip_entries.contains(entry_path))
+            return false;
+
         bool res = tools::add_item_file(pZip, source_path, entry_path);
         if (res)
-            m_zip_contents[m_zip_contents.size()] = entry_path;
+            m_zip_entries[entry_path] = m_zip_entries.size();
 
         return res;
     } else if (fi_source.isDir()) {
@@ -314,13 +314,22 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
             if (m_verbose)
                 qDebug() << "Adding:" << relPath;
 
+            // TODO: checking existing entries <m_zip_entries.contains> needs to be automated.
             // adding item
-            if (fi.isFile() && tools::add_item_file(pZip, it.key(), relPath)) // file
-                m_zip_contents[m_zip_contents.size()] = relPath;
-            else if (fi.isDir() && tools::add_item_folder(pZip, relPath))     // subfolder
-                m_zip_contents[m_zip_contents.size()] = relPath + '/';
-            else
-                return false; // adding failed
+            if (fi.isFile()
+                && !m_zip_entries.contains(relPath)
+                && tools::add_item_file(pZip, it.key(), relPath))
+            {
+                m_zip_entries[relPath] = m_zip_entries.size();
+            }
+            else if (fi.isDir()
+                     && !m_zip_entries.contains(relPath + '/')
+                     && tools::add_item_folder(pZip, relPath))
+            {
+                m_zip_entries[relPath + '/'] = m_zip_entries.size();
+            }
+            else // adding failed
+                return false;
         }
 
         return true;
@@ -331,6 +340,9 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
 
 bool QMicroz::addToZip(const BufFile &buf_file)
 {
+    if (m_zip_entries.contains(buf_file.name))
+        return false;
+
     if (!isModeWriting()) {
         qWarning() << WARNING_WRONGMODE;
         return false;
@@ -345,7 +357,7 @@ bool QMicroz::addToZip(const BufFile &buf_file)
                                            : tools::add_item_data(pZip, buf_file.name, buf_file.data, buf_file.modified);
 
     if (res)
-        m_zip_contents[m_zip_contents.size()] = buf_file.name;
+        m_zip_entries[buf_file.name] = m_zip_entries.size();
 
     return res;
 }
@@ -355,7 +367,7 @@ bool QMicroz::addToZip(const BufList &buf_data)
     BufList::const_iterator it;
     for (it = buf_data.constBegin(); it != buf_data.constEnd(); ++it) {
         if (addToZip(BufFile(it.key(), it.value())))
-            m_zip_contents[m_zip_contents.size()] = it.key();
+            m_zip_entries[it.key()] = m_zip_entries.size();
         else
             return false;
     }
@@ -629,7 +641,7 @@ bool QMicroz::compress(const QStringList &paths, const QString &zip_path)
      * Archive entries are created relative to this root.
      * Paths from the list that do not have a common root are placed in the root of the archive.
      *
-     * TODO: needed a smarter function for parsing paths and building internal entries based on multiple roots.
+     * TODO: a smarter function for parsing paths and building internal entries based on multiple roots is needed.
      */
     const QString root = QFileInfo(paths.first()).absolutePath();
     QDir dir(root);
@@ -678,9 +690,9 @@ bool QMicroz::compress(const QString &file_name,
                        const QByteArray &file_data,
                        const QString &zip_path)
 {
-    BufList buf;
-    buf[file_name] = file_data;
-    return compress(buf, zip_path);
+    BufFile buf_file(file_name, file_data);
+
+    return compress(buf_file, zip_path);
 }
 
 /*** Additional ***/

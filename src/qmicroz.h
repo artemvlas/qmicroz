@@ -39,8 +39,8 @@ struct QMICROZ_EXPORT BufFile {
 // { "path inside zip" : data }
 using BufList = QMap<QString, QByteArray>;
 
-// list of files {index : path} contained in the archive
-using ZipContents = QMap<int, QString>;
+// List of files { "entry name/path" : index } contained in the archive
+using ZipContents = QMap<QString, int>;
 
 class QMICROZ_EXPORT QMicroz
 {
@@ -107,7 +107,7 @@ public:
 
 
     /*** Zipped Items Info ***/
-    // Returns a list of files {index : path} contained in the archive
+    // Returns a list of entries { "name/path" : index } contained in the archive
     const ZipContents& contents() const;
 
     // Returns the number of items in the archive
@@ -244,7 +244,7 @@ public:
     /*** OBSOLETE ***/
 
 private:
-    // Updates the list of current archive contents <m_zip_contents>
+    // Updates the list of current archive contents <m_zip_entries>
     const ZipContents& updateZipContents();
 
     // The void pointer is used to allow the miniz header not to be included
@@ -259,8 +259,8 @@ private:
     // Folder to place the extracted files
     QString m_output_folder;
 
-    // Holds a list of current zip contents { index : "entry name/path" }
-    ZipContents m_zip_contents;
+    // Holds a list of current zip contents { "entry name/path" : index }
+    ZipContents m_zip_entries;
 
     // Literal ".zip"
     static const QString s_zip_ext;

@@ -28,10 +28,12 @@ mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
     return pZip;
 }
 
-mz_zip_archive_file_stat za_file_stat(mz_zip_archive *pZip, int file_index)
+mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index)
 {
+    mz_zip_archive *p = static_cast<mz_zip_archive *>(pZip);
+
     mz_zip_archive_file_stat file_stat;
-    if (mz_zip_reader_file_stat(pZip, file_index, &file_stat)) {
+    if (mz_zip_reader_file_stat(p, file_index, &file_stat)) {
         return file_stat;
     }
 
