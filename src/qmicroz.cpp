@@ -20,9 +20,9 @@ const QString QMicroz::s_zip_ext = QStringLiteral(u".zip");
 
 QMicroz::QMicroz() {}
 
-QMicroz::QMicroz(const char* zip_path, Mode mode)
+QMicroz::QMicroz(const char* zip_path)
 {
-    setZipFile(QString(zip_path), mode);
+    setZipFile(QString(zip_path));
 }
 
 QMicroz::QMicroz(const QString &zip_path, Mode mode)
@@ -403,7 +403,12 @@ bool QMicroz::extractAll()
     return true;
 }
 
-bool QMicroz::extractIndex(int index, bool recreate_path)
+bool QMicroz::extractIndex(int index)
+{
+    return extractIndex(index, tools::joinPath(outputFolder(), name(index)));
+}
+
+bool QMicroz::extractIndex(int index, const QString &output_path)
 {
     if (index == -1)
         return false;
@@ -423,7 +428,7 @@ bool QMicroz::extractIndex(int index, bool recreate_path)
         return false;
     }
 
-    // create output folder if it doesn't exist
+    // create an output folder if it doesn't exist
     if (!tools::createFolder(outputFolder())) {
         return false;
     }
@@ -437,12 +442,8 @@ bool QMicroz::extractIndex(int index, bool recreate_path)
     if (m_verbose)
         qDebug() << "Extracting:" << filename; // "Extracting:" << (index + 1) << '/' << count() << filename;
 
-    // <!recreate_path> to place in the root of the output folder
-    const QString outpath = tools::joinPath(outputFolder(),
-                                            recreate_path ? filename : QFileInfo(filename).fileName());
-
     // create a new path on disk
-    const QString parent_folder = QFileInfo(outpath).absolutePath();
+    const QString parent_folder = QFileInfo(output_path).absolutePath();
     if (!tools::createFolder(parent_folder)) {
         return false;
     }
@@ -453,7 +454,7 @@ bool QMicroz::extractIndex(int index, bool recreate_path)
             qDebug() << "Subfolder extracted";
     }
     // extract file
-    else if (!tools::extract_to_file(static_cast<mz_zip_archive *>(m_archive), index, outpath)) {
+    else if (!tools::extract_to_file(static_cast<mz_zip_archive *>(m_archive), index, output_path)) {
         return false;
     }
 
@@ -463,9 +464,14 @@ bool QMicroz::extractIndex(int index, bool recreate_path)
     return true;
 }
 
-bool QMicroz::extractFile(const QString &file_name, bool recreate_path)
+bool QMicroz::extractFile(const QString &file_name)
 {
-    return extractIndex(findIndex(file_name), recreate_path);
+    return extractIndex(findIndex(file_name));
+}
+
+bool QMicroz::extractFile(const QString &file_name, const QString &output_path)
+{
+    return extractIndex(findIndex(file_name), output_path);
 }
 
 BufList QMicroz::extractToBuf() const

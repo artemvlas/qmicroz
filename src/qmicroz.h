@@ -51,7 +51,7 @@ public:
     ~QMicroz();
 
     // To avoid ambiguity...
-    explicit QMicroz(const char *zip_path, Mode mode = ModeAuto);
+    explicit QMicroz(const char *zip_path);
 
     // Sets <zip_path> and opens a new archive for Reading or Writing same as <setZipFile>
     explicit QMicroz(const QString &zip_path, Mode mode = ModeAuto);
@@ -159,22 +159,28 @@ public:
     // Extracts the entire contents of the archive into the output folder (the parent one if not set)
     bool extractAll();
 
-    // extracts the file with index to disk
-    bool extractIndex(int index, bool recreate_path = true);
+    /* Extracts the file with <index> to disk: --> <output_folder/entry_path> */
+    bool extractIndex(int index);
 
-    // finds the <file_name> and extracts if any; slower than 'extractIndex'
-    bool extractFile(const QString &file_name, bool recreate_path = true);
+    /* Extracts the file with <index> to disk: --> custom <output_path> */
+    bool extractIndex(int index, const QString &output_path);
 
-    // unzips all files into the RAM buffer { path : data }
+    // Finds the <file_name> and extracts if any; slower than 'extractIndex'
+    bool extractFile(const QString &file_name);
+
+    // Finds the <file_name> and extracts to <output_path>
+    bool extractFile(const QString &file_name, const QString &output_path);
+
+    // Unzips all files into the RAM buffer { path : data }
     BufList extractToBuf() const;
 
-    // extracts the selected index only
+    // Extracts the file with <index> to buffer
     BufFile extractToBuf(int index) const;
 
-    // finds the <file_name> and extracts to Buf; slower than (index)
+    // Finds the <file_name> and extracts to buffer, if any; slower than <index>
     BufFile extractFileToBuf(const QString &file_name) const;
 
-    // returns the extracted file data; QByteArray owns the copied data
+    // Returns the extracted file data; QByteArray owns the copied data
     QByteArray extractData(int index) const;
 
     // QByteArray does NOT own the data! To free memory: delete _array.constData();

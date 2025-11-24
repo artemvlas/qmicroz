@@ -94,6 +94,10 @@ void test_qmicroz::test_compress_buf_list()
     QVERIFY(qmz.isFolder(qmz.findIndex("empty_folder/")));
     QVERIFY(qmz.isFile(qmz.findIndex("file4.txt")));
     QVERIFY(qmz.isFile(qmz.findIndex("folder2/file5.txt")));
+
+    QString custom_output = tmp_test_dir + "/custom_folder/file111.txt";
+    QVERIFY(qmz.extractFile("file1.txt", custom_output));
+    QVERIFY(QFileInfo::exists(custom_output));
 }
 
 void test_qmicroz::test_extract()
@@ -204,7 +208,7 @@ void test_qmicroz::test_addToZipPath()
 
 void test_qmicroz::test_addToZipPathEntryPath()
 {
-    QMicroz qmz(tmp_test_dir + "/test_addToZipPathEntryPath.zip");
+    QMicroz qmz(tmp_test_dir + "/test_addToZipPathEntryPath.zip", QMicroz::ModeWrite);
     //qmz.setVerbose(true);
 
     QVERIFY(qmz);
