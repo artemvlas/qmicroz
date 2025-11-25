@@ -329,7 +329,7 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
             // adding item
             if (fi.isFile() && tools::add_item_file(pZip, it.key(), relPath))
                 m_zip_entries[relPath] = m_zip_entries.size();
-            else if (fi.isDir() && tools::add_item_folder(pZip, relPath))
+            else if (fi.isDir() && tools::add_item_data(pZip, tools::toFolderName(relPath), QByteArray(), fi.lastModified()))
                 m_zip_entries[tools::toFolderName(relPath)] = m_zip_entries.size();
             else // adding failed
                 return false;
@@ -345,7 +345,7 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
 
 bool QMicroz::addToZip(const BufFile &buf_file)
 {
-    if (m_zip_entries.contains(buf_file.name))
+    if (!buf_file)
         return false;
 
     if (!isModeWriting()) {
@@ -353,13 +353,18 @@ bool QMicroz::addToZip(const BufFile &buf_file)
         return false;
     }
 
-    if (!buf_file)
+    if (m_zip_entries.contains(buf_file.name)) {
+        if (m_verbose)
+            qDebug() << "Exists:" << buf_file.name;
         return false;
+    }
+
+    using namespace tools;
 
     mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
+    const QByteArray &data = isFileName(buf_file.name) ? buf_file.data : QByteArray();
 
-    bool res = buf_file.name.endsWith('/') ? tools::add_item_folder(pZip, buf_file.name)
-                                           : tools::add_item_data(pZip, buf_file.name, buf_file.data, buf_file.modified);
+    bool res = add_item_data(pZip, buf_file.name, data, buf_file.modified);
 
     if (res)
         m_zip_entries[buf_file.name] = m_zip_entries.size();
@@ -470,26 +475,19 @@ BufList QMicroz::extractToBuf() const
         return res;
     }
 
-    if (m_verbose)
-        qDebug() << "Extracting to RAM:" << (m_zip_path.isEmpty() ? "buffered zip" : m_zip_path);
-
     // extracting...
     for (int it = 0; it < count(); ++it) {
         const QString filename = name(it);
-        if (filename.isEmpty())
-            break;
 
-        // subfolder, no data to extract
-        if (tools::isFolderName(filename))
-            continue;
+        if (tools::isFileName(filename)) {
+            if (m_verbose)
+                qDebug() << "Extracting:" << (it + 1) << '/' << count() << filename;
 
-        if (m_verbose)
-            qDebug() << "Extracting:" << (it + 1) << '/' << count() << filename;
-
-        // extract file
-        const QByteArray data = extractData(it);
-        if (!data.isNull())
-            res[filename] = data;
+            // extract file
+            const QByteArray data = extractData(it);
+            if (!data.isNull())
+                res[filename] = data;
+        }
     }
 
     if (m_verbose)
@@ -510,33 +508,26 @@ BufFile QMicroz::extractToBuf(int index) const
     if (index == -1)
         return res;
 
-    if (m_verbose)
-        qDebug() << "Extracting to RAM:" << (m_zip_path.isEmpty() ? "buffered zip" : m_zip_path);
-
     const QString filename = name(index);
     if (filename.isEmpty())
         return res;
 
-    // subfolder, no data to extract
-    if (tools::isFolderName(filename)) {
-        if (m_verbose)
-            qDebug() << "Subfolder, no data to extract:" << filename;
-        return res;
-    }
-
     if (m_verbose)
         qDebug() << "Extracting:" << filename;
 
-    // extract file
-    const QByteArray ex_data = extractData(index);
+    res.name = filename;
 
-    if (!ex_data.isNull()) {
-        res.name = filename;
-        res.data = ex_data;
-        res.modified = lastModified(index);
+    if (tools::isFileName(filename)) {
+        // extract file
+        const QByteArray ex_data = extractData(index);
 
-        if (m_verbose)
-            qDebug() << "Unzipped:" << ex_data.size() << "bytes";
+        if (!ex_data.isNull()) {
+            res.data = ex_data;
+            res.modified = lastModified(index);
+
+            if (m_verbose)
+                qDebug() << "Unzipped:" << ex_data.size() << "bytes";
+        }
     }
 
     return res;

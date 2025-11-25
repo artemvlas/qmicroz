@@ -7,6 +7,7 @@ QMicroz v0.6
 * Static compress(paths) function now allows paths with different roots.
 * ZipContents format changed to accelerate the existing entries search.
   <index, name> --> <name, index>
+* Ability to set last modified date to folder entries.
 
 ---
 QMicroz v0.5

@@ -22,6 +22,7 @@ public:
 private slots:
     void test_compress_buf_file();
     void test_compress_buf_list();
+    void test_extract_to_buf();
     void test_extract();
     void test_compress_file();
     void test_compress_folder();
@@ -30,7 +31,7 @@ private slots:
     void test_addToZipPath();
     void test_addToZipPathEntryPath();
     void test_setZipWriting();
-    void testNestedFoldersCreation();
+    void test_nestedFoldersCreation();
 
 private:
     const QString tmp_test_dir = QDir::currentPath() + "/tmp_test_files";
@@ -67,6 +68,17 @@ void test_qmicroz::test_compress_buf_file()
     QVERIFY(qmz.sizeCompressed(0) < qmz.sizeUncompressed(0));
     QCOMPARE(qmz.extractData(0), ba + ba);
     QCOMPARE(qmz.lastModified(0), dt);
+
+    BufFile buf_folder("empty/");
+    buf_folder.modified = dt;
+
+    QString output_file2 = tmp_test_dir + "/test_compress_buf_folder.zip";
+    QMicroz::compress(buf_folder, output_file2);
+
+    QVERIFY(QMicroz::isZipFile(output_file2));
+    QVERIFY(qmz.setZipFile(output_file2));
+    QVERIFY(qmz.isFolder(0));
+    QCOMPARE(qmz.lastModified(0), dt);
 }
 
 void test_qmicroz::test_compress_buf_list()
@@ -99,6 +111,21 @@ void test_qmicroz::test_compress_buf_list()
     QString custom_output = tmp_test_dir + "/custom_folder/file111.txt";
     QVERIFY(qmz.extractFile("file1.txt", custom_output));
     QVERIFY(QFileInfo::exists(custom_output));
+}
+
+void test_qmicroz::test_extract_to_buf()
+{
+    QMicroz qmz(tmp_test_dir + "/test_compress_buf_list.zip", QMicroz::ModeRead);
+
+    QVERIFY(qmz);
+
+    BufList list = qmz.extractToBuf();
+    QCOMPARE(list.size(), 7);
+    QVERIFY(list.value("file4.txt") == "Random file data 4");
+    QVERIFY(qmz.extractToBuf(0).name == "empty_folder/");
+
+    BufFile buf_file = qmz.extractFileToBuf("file5.txt");
+    QVERIFY(buf_file && buf_file.data == "Random file data 5");
 }
 
 void test_qmicroz::test_extract()
@@ -268,7 +295,7 @@ void test_qmicroz::test_setZipWriting()
     QVERIFY(qmz.extractData(0) == qmz.extractData(qmz.findIndex("file2.txt")));
 }
 
-void test_qmicroz::testNestedFoldersCreation()
+void test_qmicroz::test_nestedFoldersCreation()
 {
     QString zip_file = tmp_test_dir + "/test_nested_folder.zip";
     QMicroz qmz(zip_file, QMicroz::ModeWrite);

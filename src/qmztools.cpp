@@ -85,7 +85,7 @@ bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteAr
 bool add_item_folder(mz_zip_archive *pZip, const QString &item_path)
 {
     return add_item_data(pZip,
-                         isFolderName(item_path) ? item_path : item_path + s_sep,
+                         toFolderName(item_path),
                          QByteArray());
 }
 
