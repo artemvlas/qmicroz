@@ -1,3 +1,14 @@
+QMicroz v0.6
+* Redesigned architecture.
+  The main class now has functionality for more flexible zippping at a lower level.
+* Ability to zip files and folders with an arbitrary entry name.
+* Ability to extract individual items to a custom path.
+* Ability to concise code using << operator.
+* Static compress(paths) function now allows paths with different roots.
+* ZipContents format changed to accelerate the existing entries search.
+  <index, name> --> <name, index>
+
+---
 QMicroz v0.5
 * miniz updated to 3.1.0
 * The names of static compression functions have been merged.
@@ -10,6 +21,7 @@ QMicroz v0.5
 * Added unit tests.
 * Fixed static build on Windows MinGW.
 
+---
 QMicroz v0.4
 * It is now possible to request extended information about items contained in the archive.
     For example, get the modification date or compressed/uncompressed size.
