@@ -216,7 +216,7 @@ int QMicroz::findIndex(const QString &file_name) const
     // deep search, matching only the name
     if (!file_name.contains(tools::s_sep)) {
         for (it = m_zip_entries.constBegin(); it != m_zip_entries.constEnd(); ++it) {
-            if (tools::isFileItem(it.key())
+            if (tools::isFileName(it.key())
                 && file_name == QFileInfo(it.key()).fileName())
             {
                 return it.value();
@@ -230,12 +230,12 @@ int QMicroz::findIndex(const QString &file_name) const
 
 bool QMicroz::isFolder(int index) const
 {
-    return tools::isFolderItem(name(index));
+    return tools::isFolderName(name(index));
 }
 
 bool QMicroz::isFile(int index) const
 {
-    return tools::isFileItem(name(index));
+    return tools::isFileName(name(index));
 }
 
 QString QMicroz::name(int index) const
@@ -405,6 +405,11 @@ bool QMicroz::extractAll()
 
 bool QMicroz::extractIndex(int index)
 {
+    if (outputFolder().isEmpty()) {
+        qWarning() << "QMicroz: No output folder.";
+        return false;
+    }
+
     return extractIndex(index, tools::joinPath(outputFolder(), name(index)));
 }
 
@@ -423,45 +428,27 @@ bool QMicroz::extractIndex(int index, const QString &output_path)
         return false;
     }
 
-    if (outputFolder().isEmpty()) {
-        qWarning() << "QMicroz: No output folder.";
-        return false;
-    }
-
-    // create an output folder if it doesn't exist
-    if (!tools::createFolder(outputFolder())) {
-        return false;
-    }
-
-    // extracting...
-    // the name is also a relative path inside the archive
+    // the name is also a path inside the archive
     const QString filename = name(index);
     if (filename.isEmpty())
         return false;
 
-    if (m_verbose)
-        qDebug() << "Extracting:" << filename; // "Extracting:" << (index + 1) << '/' << count() << filename;
-
-    // create a new path on disk
-    const QString parent_folder = QFileInfo(output_path).absolutePath();
-    if (!tools::createFolder(parent_folder)) {
-        return false;
-    }
-
-    // subfolder, no data to extract
-    if (tools::isFolderItem(filename)) {
+    if (tools::isFileName(filename)) {
         if (m_verbose)
-            qDebug() << "Subfolder extracted";
-    }
-    // extract file
-    else if (!tools::extract_to_file(static_cast<mz_zip_archive *>(m_archive), index, output_path)) {
-        return false;
+            qDebug() << "Extracting:" << filename; // or "Extracting:" << (index + 1) << '/' << count() << filename;
+
+        const QString parent_folder = QFileInfo(output_path).absolutePath();
+
+        // create parent folder on disk if not any
+        if (!tools::createFolder(parent_folder))
+            return false;
+
+        // extracting...
+        return tools::extract_to_file(static_cast<mz_zip_archive *>(m_archive), index, output_path);
     }
 
-    if (m_verbose)
-        qDebug() << "Unzip complete.";
-
-    return true;
+    // <filename> is a folder entry
+    return tools::createFolder(output_path);
 }
 
 bool QMicroz::extractFile(const QString &file_name)
@@ -493,7 +480,7 @@ BufList QMicroz::extractToBuf() const
             break;
 
         // subfolder, no data to extract
-        if (tools::isFolderItem(filename))
+        if (tools::isFolderName(filename))
             continue;
 
         if (m_verbose)
@@ -531,7 +518,7 @@ BufFile QMicroz::extractToBuf(int index) const
         return res;
 
     // subfolder, no data to extract
-    if (tools::isFolderItem(filename)) {
+    if (tools::isFolderName(filename)) {
         if (m_verbose)
             qDebug() << "Subfolder, no data to extract:" << filename;
         return res;

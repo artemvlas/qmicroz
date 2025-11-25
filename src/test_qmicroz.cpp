@@ -30,6 +30,7 @@ private slots:
     void test_addToZipPath();
     void test_addToZipPathEntryPath();
     void test_setZipWriting();
+    void testNestedFoldersCreation();
 
 private:
     const QString tmp_test_dir = QDir::currentPath() + "/tmp_test_files";
@@ -265,6 +266,30 @@ void test_qmicroz::test_setZipWriting()
     QVERIFY(qmz.setZipFile(file_path) && qmz.isModeReading());
     QVERIFY(qmz.extractData(0) == "Random file data 1");
     QVERIFY(qmz.extractData(0) == qmz.extractData(qmz.findIndex("file2.txt")));
+}
+
+void test_qmicroz::testNestedFoldersCreation()
+{
+    QString zip_file = tmp_test_dir + "/test_nested_folder.zip";
+    QMicroz qmz(zip_file, QMicroz::ModeWrite);
+
+    // add to zip
+    QVERIFY(qmz && qmz << BufFile("nested_folders_root/"));
+    QVERIFY(qmz << BufFile("nested_folders_root/nested_folder_1/"));
+    QVERIFY(qmz << BufFile("nested_folders_root/nested_folder_1/nested_folder2/"));
+
+    // extract
+    QVERIFY(qmz.setZipFile(zip_file, QMicroz::ModeRead));
+    QVERIFY(qmz.count() == 3 && qmz.extractIndex(2));
+    QVERIFY(qmz.extractIndex(1, tmp_test_dir + "/nested_folders_custom_root/nested_folder_1"));
+    QVERIFY(qmz.extractIndex(1, tmp_test_dir + "/nested_folders_custom_root/nested_custom_folder/"));
+    //QVERIFY(!qmz.extractIndex(5, tmp_test_dir + "/nested_folders_wrong_index"));
+
+    QVERIFY(QFileInfo::exists(tmp_test_dir + "/nested_folders_root"));
+    QVERIFY(QFileInfo::exists(tmp_test_dir + "/nested_folders_root/nested_folder_1/nested_folder2"));
+    QVERIFY(QFileInfo::exists(tmp_test_dir + "/nested_folders_custom_root/nested_folder_1"));
+    QVERIFY(QFileInfo::exists(tmp_test_dir + "/nested_folders_custom_root/nested_custom_folder/"));
+    //QVERIFY(!QFileInfo::exists(tmp_test_dir + "/nested_folders_wrong_index"));
 }
 
 QTEST_APPLESS_MAIN(test_qmicroz)

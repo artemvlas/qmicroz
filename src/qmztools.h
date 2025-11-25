@@ -65,12 +65,6 @@ QString joinPath(const QString &abs_path, const QString &rel_path);
  */
 bool createFolder(const QString &path);
 
-// Appends '/' if not any
-inline QString toFolderName(const QString &name)
-{
-    return name.endsWith(s_sep) ? name : name + s_sep;
-}
-
 // Writing or Reading: MZ_ZIP_MODE_READING = 1, MZ_ZIP_MODE_WRITING = 2
 inline mz_zip_mode zipMode(void *pZip)
 {
@@ -91,15 +85,21 @@ inline mz_uint compressLevel(qint64 data_size)
 }
 
 // Checks whether the <item_path> is a sub-folder inside zip
-inline bool isFolderItem(const QString &item_path)
+inline bool isFolderName(const QString &name)
 {
-    return item_path.endsWith(s_sep);
+    return name.endsWith(s_sep);
 }
 
 // Checks whether the <item_path> is a file inside zip
-inline bool isFileItem(const QString &item_path)
+inline bool isFileName(const QString &name)
 {
-    return !item_path.isEmpty() && !item_path.endsWith(s_sep);
+    return !name.isEmpty() && !name.endsWith(s_sep);
+}
+
+// Appends '/' if not any
+inline QString toFolderName(const QString &name)
+{
+    return name.endsWith(s_sep) ? name : name + s_sep;
 }
 
 } // namespace tools
