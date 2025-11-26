@@ -32,6 +32,7 @@ private slots:
     void test_addToZipPathEntryPath();
     void test_setZipWriting();
     void test_nestedFoldersCreation();
+    void test_extractFolder();
 
 private:
     const QString tmp_test_dir = QDir::currentPath() + "/tmp_test_files";
@@ -317,6 +318,42 @@ void test_qmicroz::test_nestedFoldersCreation()
     QVERIFY(QFileInfo::exists(tmp_test_dir + "/nested_folders_custom_root/nested_folder_1"));
     QVERIFY(QFileInfo::exists(tmp_test_dir + "/nested_folders_custom_root/nested_custom_folder/"));
     //QVERIFY(!QFileInfo::exists(tmp_test_dir + "/nested_folders_wrong_index"));
+}
+
+void test_qmicroz::test_extractFolder()
+{
+    QString zip_file = tmp_test_dir + "/test_extract_folder.zip";
+    QMicroz qmz(zip_file, QMicroz::ModeWrite);
+
+    qmz << BufFile("file111.txt", "Some data to test file111.txt");
+    qmz << BufFile("folder111/");
+    qmz << BufFile("folder222/");
+    qmz << BufFile("folder222/file222-1.txt", "Some data to test file222-1.txt");
+    qmz << BufFile("folder222/file222-2.txt", "Some data to test file222-2.txt");
+    qmz << BufFile("folder222/file222-3.txt");
+    qmz << BufFile("folder222/folder333/");
+    qmz << BufFile("file111-2.txt", "Some data to test file111-2.txt");
+    qmz << BufFile("folder444/file444.txt");
+
+    qmz.closeArchive();
+    qmz.setZipFile(zip_file, QMicroz::ModeRead);
+    QVERIFY(qmz && !qmz.extractFolder(0));
+    QVERIFY(qmz.extractFolder(1));
+    QVERIFY(QFileInfo::exists(tmp_test_dir + "/folder111"));
+
+    QVERIFY(qmz.extractFolder(2));
+    QVERIFY(QFileInfo::exists(tmp_test_dir + "/folder222"));
+    QVERIFY(QFileInfo(tmp_test_dir + "/folder222/folder333").isDir());
+    QVERIFY(QFileInfo(tmp_test_dir + "/folder222/file222-2.txt").isFile());
+
+    QVERIFY(qmz.extractFolder(2, (tmp_test_dir + "/folder111/custom_out")));
+    QVERIFY(QFileInfo::exists(tmp_test_dir + "/folder111/custom_out"));
+    QVERIFY(QFileInfo(tmp_test_dir + "/folder111/custom_out/folder333").isDir());
+    QVERIFY(QFileInfo(tmp_test_dir + "/folder111/custom_out/file222-2.txt").isFile());
+
+    QVERIFY(!QFileInfo::exists(tmp_test_dir + "/file111.txt"));
+    QVERIFY(!QFileInfo::exists(tmp_test_dir + "/folder444"));
+    QVERIFY(!QFileInfo::exists(tmp_test_dir + "/file111-2.txt"));
 }
 
 QTEST_APPLESS_MAIN(test_qmicroz)
