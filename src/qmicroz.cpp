@@ -466,6 +466,40 @@ bool QMicroz::extractFile(const QString &file_name, const QString &output_path)
     return extractIndex(findIndex(file_name), output_path);
 }
 
+bool QMicroz::extractFolder(int index)
+{
+    if (outputFolder().isEmpty()) {
+        qWarning() << "QMicroz: No output folder.";
+        return false;
+    }
+
+    return extractFolder(index, tools::joinPath(outputFolder(), name(index)));
+}
+
+bool QMicroz::extractFolder(int index, const QString &output_path)
+{
+    if (!isFolder(index))
+        return false;
+
+    bool extracted = false;
+    QString folder_entry = name(index);
+    ZipContents::const_iterator it = m_zip_entries.constBegin();
+
+    for (; it != m_zip_entries.constEnd(); ++it) {
+        if (it.key().startsWith(folder_entry)) {
+            // e.g. "folder_entry/file" --> "file"
+            QString relPath = it.key().mid(folder_entry.size());
+
+            if (extractIndex(it.value(), tools::joinPath(output_path, relPath)))
+                extracted = true;
+            else
+                qWarning() << "Failed to extract:" << it.key();
+        }
+    }
+
+    return extracted;
+}
+
 BufList QMicroz::extractToBuf() const
 {
     BufList res;
