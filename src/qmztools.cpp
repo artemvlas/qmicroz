@@ -11,23 +11,6 @@
 #include <QStringBuilder>
 
 namespace tools {
-mz_zip_archive* za_new(const QString &zip_path, ZaType za_type)
-{
-    // create and open a zip archive
-    mz_zip_archive *pZip = new mz_zip_archive();
-
-    bool result = za_type ? mz_zip_writer_init_file(pZip, zip_path.toUtf8().constData(), 0)
-                          : mz_zip_reader_init_file(pZip, zip_path.toUtf8().constData(), 0);
-
-    if (!result) {
-        qWarning() << "QMicroz: Failed to open zip file:" << zip_path;
-        delete pZip;
-        return nullptr;
-    }
-
-    return pZip;
-}
-
 mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index)
 {
     mz_zip_archive *p = static_cast<mz_zip_archive *>(pZip);
@@ -39,17 +22,6 @@ mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index)
 
     qWarning() << "QMicroz: Failed to get file info:" << file_index;
     return mz_zip_archive_file_stat();
-}
-
-bool za_close(mz_zip_archive *pZip)
-{
-    if (pZip && mz_zip_end(pZip)) {
-        delete pZip;
-        return true;
-    }
-
-    qWarning() << "QMicroz: Failed to close archive.";
-    return false;
 }
 
 bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteArray &data)

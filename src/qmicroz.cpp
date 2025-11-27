@@ -60,28 +60,42 @@ bool QMicroz::setZipFile(const QString &zip_path, Mode mode)
     // close the currently opened one if any
     closeArchive();
 
-    mz_zip_archive *pZip = nullptr;
+    Mode zamode = ModeAuto; // 0
 
     switch (mode) {
     case ModeAuto:
         if (!QFileInfo::exists(zip_path))
-            pZip = tools::za_new(zip_path, tools::ZaWriter);
+            zamode = ModeWrite;
         else if (isZipFile(zip_path))
-            pZip = tools::za_new(zip_path, tools::ZaReader);
+            zamode = ModeRead;
         break;
     case ModeRead:
         if (isZipFile(zip_path))
-            pZip = tools::za_new(zip_path, tools::ZaReader);
+            zamode = ModeRead;
         break;
     case ModeWrite:
-        pZip = tools::za_new(zip_path, tools::ZaWriter);
+        zamode = ModeWrite;
         break;
     default:
         break;
     }
 
-    if (!pZip) {
+    if (!zamode) { // zamode == 0
         qWarning() << WARNING_WRONGPATH << zip_path;
+        return false;
+    }
+
+    // create and open a zip archive
+    mz_zip_archive *pZip = new mz_zip_archive();
+    const char* zapath = zip_path.toUtf8().constData();
+
+    // Here the <zamode> can be either ModeRead or ModeWrite
+    bool success = (zamode == ModeWrite) ? mz_zip_writer_init_file(pZip, zapath, 0)
+                                         : mz_zip_reader_init_file(pZip, zapath, 0);
+
+    if (!success) {
+        qWarning() << "QMicroz: Failed to open zip file:" << zip_path;
+        delete pZip;
         return false;
     }
 
@@ -150,7 +164,10 @@ void QMicroz::closeArchive()
     if (isModeWriting())
         mz_zip_writer_finalize_archive(pZip);
 
-    tools::za_close(pZip);
+    if (!mz_zip_end(pZip))
+        qWarning() << "QMicroz: Failed to close archive.";
+
+    delete pZip;
     m_archive = nullptr;
     m_zip_entries.clear();
     m_zip_path.clear();

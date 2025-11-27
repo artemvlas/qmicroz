@@ -14,16 +14,9 @@
 
 namespace tools {
 static const QChar s_sep = u'/';
-enum ZaType { ZaReader, ZaWriter };
-
-// Creates and initializes a new archive
-mz_zip_archive* za_new(const QString &zip_path, ZaType za_type);
 
 // Returns info about the file contained in the archive
 mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index);
-
-// Closes and deletes the archive
-bool za_close(mz_zip_archive *pZip);
 
 /* Adds to the archive a file or folder entry.
  * <item_path> is a name/path inside the archive, <data> is the file data.
@@ -70,12 +63,6 @@ inline mz_zip_mode zipMode(void *pZip)
 {
     mz_zip_archive *p = static_cast<mz_zip_archive *>(pZip);
     return p ? p->m_zip_mode : MZ_ZIP_MODE_INVALID;
-}
-
-// Returns the name (path) of a file/folder in the archive at the specified index
-inline QString za_item_name(mz_zip_archive *pZip, int file_index)
-{
-    return za_file_stat(pZip, file_index).m_filename;
 }
 
 // Returns "no compression" for micro files, for others by default
