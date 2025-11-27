@@ -171,10 +171,10 @@ public:
     // Finds the <file_name> and extracts to <output_path>
     bool extractFile(const QString &file_name, const QString &output_path);
 
-    /* Extracts a folder <index> and its contents to disk: <m_output_folder/folder_entry> */
+    /* Extracts a folder <index> and its contents to disk: <m_output_folder/folder_entry/contents> */
     bool extractFolder(int index);
 
-    /* Extracts a folder <index> and its contents to disk: <output_path/folder_entry> */
+    /* Extracts a folder <index> and its contents to disk: <output_path/contents> */
     bool extractFolder(int index, const QString &output_path);
 
     // Unzips all files into the RAM buffer { path : data }

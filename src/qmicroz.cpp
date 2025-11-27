@@ -135,7 +135,7 @@ void QMicroz::setOutputFolder(const QString &output_folder)
 const QString& QMicroz::outputFolder() const
 {
     if (m_output_folder.isEmpty())
-        qWarning() << "QMicroz: No output folder";
+        qWarning() << "QMicroz: No output folder.";
 
     return m_output_folder;
 }
@@ -410,10 +410,8 @@ bool QMicroz::extractAll()
 
 bool QMicroz::extractIndex(int index)
 {
-    if (outputFolder().isEmpty()) {
-        qWarning() << "QMicroz: No output folder.";
+    if (outputFolder().isEmpty())
         return false;
-    }
 
     return extractIndex(index, tools::joinPath(outputFolder(), name(index)));
 }
@@ -468,10 +466,8 @@ bool QMicroz::extractFile(const QString &file_name, const QString &output_path)
 
 bool QMicroz::extractFolder(int index)
 {
-    if (outputFolder().isEmpty()) {
-        qWarning() << "QMicroz: No output folder.";
+    if (outputFolder().isEmpty())
         return false;
-    }
 
     return extractFolder(index, tools::joinPath(outputFolder(), name(index)));
 }

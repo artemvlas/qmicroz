@@ -8,6 +8,8 @@ QMicroz v0.6
 * ZipContents format changed to accelerate the existing entries search.
   <index, name> --> <name, index>
 * Ability to set last modified date to folder entries.
+* Ability to extract the selected folder with its contents.
+* Reduced verbosity (again).
 
 ---
 QMicroz v0.5
