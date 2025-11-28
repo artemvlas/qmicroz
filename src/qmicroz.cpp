@@ -80,7 +80,7 @@ bool QMicroz::setZipFile(const QString &zip_path, Mode mode)
         break;
     }
 
-    if (!zamode) { // zamode == 0
+    if (zamode == 0) {
         qWarning() << WARNING_WRONGPATH << zip_path;
         return false;
     }
@@ -453,6 +453,14 @@ bool QMicroz::extractIndex(int index, const QString &output_path)
     if (filename.isEmpty())
         return false;
 
+    auto createFolder = [](const QString &path) {
+        if (QFileInfo::exists(path) || QDir().mkpath(path))
+            return true;
+
+        qWarning() << "QMicroz: Failed to create directory:" << path;
+        return false;
+    };
+
     if (tools::isFileName(filename)) {
         if (m_verbose)
             qDebug() << "Extracting:" << filename; // or "Extracting:" << (index + 1) << '/' << count() << filename;
@@ -460,7 +468,7 @@ bool QMicroz::extractIndex(int index, const QString &output_path)
         const QString parent_folder = QFileInfo(output_path).absolutePath();
 
         // create parent folder on disk if not any
-        if (!tools::createFolder(parent_folder))
+        if (!createFolder(parent_folder))
             return false;
 
         // extracting...
@@ -468,7 +476,7 @@ bool QMicroz::extractIndex(int index, const QString &output_path)
     }
 
     // <filename> is a folder entry
-    return tools::createFolder(output_path);
+    return createFolder(output_path);
 }
 
 bool QMicroz::extractFile(const QString &file_name)

@@ -24,47 +24,30 @@ mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index)
     return mz_zip_archive_file_stat();
 }
 
-bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteArray &data)
+bool add_item_data(mz_zip_archive *pZip, const QString &entry_name,
+                   const QByteArray &file_data, const QDateTime &last_modified)
 {
-    if (!mz_zip_writer_add_mem(pZip,
-                               item_path.toUtf8().constData(),
-                               data.constData(),
-                               data.size(),
-                               compressLevel(data.size())))
-    {
-        qWarning() << "QMicroz: Failed to compress file:" << item_path;
+    if (entry_name.isEmpty())
         return false;
-    }
 
-    return true;
-}
-
-bool add_item_data(mz_zip_archive *pZip, const QString &item_path, const QByteArray &data, const QDateTime &lastModified)
-{
-    time_t modified = lastModified.isValid() ? lastModified.toSecsSinceEpoch() : 0;
+    const QByteArray &data = isFolderName(entry_name) ? QByteArray() : file_data;
+    time_t modified = last_modified.isValid() ? last_modified.toSecsSinceEpoch() : 0;
 
     return mz_zip_writer_add_mem_ex_v2(pZip,
-                                       item_path.toUtf8().constData(),   // entry name
+                                       entry_name.toUtf8().constData(),  // entry name/path
                                        data.constData(),                 // file data
                                        data.size(),                      // file size
                                        NULL, 0,
                                        compressLevel(data.size()),
                                        0, 0,
-                                       modified > 0 ? &modified : NULL,  // last modified, NULL for current
+                                       modified > 0 ? &modified : NULL,  // last modified, NULL to set current time
                                        NULL, 0, NULL, 0);
 }
 
-bool add_item_folder(mz_zip_archive *pZip, const QString &item_path)
-{
-    return add_item_data(pZip,
-                         toFolderName(item_path),
-                         QByteArray());
-}
-
-bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &item_path)
+bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &entry_name)
 {
     return mz_zip_writer_add_file(pZip,                             // zip archive
-                                  item_path.toUtf8().constData(),   // path inside the zip
+                                  entry_name.toUtf8().constData(),  // path inside the zip
                                   fs_path.toUtf8().constData(),     // filesystem path
                                   NULL, 0,
                                   compressLevel(QFileInfo(fs_path).size()));
@@ -139,18 +122,6 @@ QMap<QString, QString> folderContentRel(const QString &folder)
     }
 
     return found;
-}
-
-bool createFolder(const QString &path)
-{
-    if (QFileInfo::exists(path)
-        || QDir().mkpath(path))
-    {
-        return true;
-    }
-
-    qWarning() << "QMicroz: Failed to create directory:" << path;
-    return false;
 }
 
 QString joinPath(const QString &abs_path, const QString &rel_path)
