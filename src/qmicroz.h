@@ -27,6 +27,8 @@ struct QMICROZ_EXPORT BufFile {
     BufFile() {}
     BufFile(const QString &fileName, const QByteArray &fileData = QByteArray())
         : name(fileName), data(fileData) {}
+    BufFile(const QString &fileName, const QDateTime &lastModified)
+        : name(fileName), modified(lastModified) {}
 
     explicit operator bool() const { return !name.isEmpty(); }
     qint64 size() const { return data.size(); }

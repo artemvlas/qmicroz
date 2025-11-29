@@ -27,9 +27,6 @@ mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index)
 bool add_item_data(mz_zip_archive *pZip, const QString &entry_name,
                    const QByteArray &file_data, const QDateTime &last_modified)
 {
-    if (entry_name.isEmpty())
-        return false;
-
     const QByteArray &data = isFolderName(entry_name) ? QByteArray() : file_data;
     time_t modified = last_modified.isValid() ? last_modified.toSecsSinceEpoch() : 0;
 

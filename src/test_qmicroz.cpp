@@ -208,6 +208,8 @@ void test_qmicroz::test_addToZipPath()
     //qmz.setVerbose(true);
 
     QVERIFY(qmz << (tmp_test_dir + "/empty_folder"));
+    QVERIFY(qmz.isFolder(0));
+    QCOMPARE(qmz.contents().firstKey(), "empty_folder/");
     QVERIFY(!qmz.addToZip(tmp_test_dir + "/empty_folder"));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/data_ckeck"));
     QVERIFY(!qmz.addToZip(tmp_test_dir + "/data_ckeck"));
@@ -215,6 +217,10 @@ void test_qmicroz::test_addToZipPath()
     QVERIFY(!qmz.addToZip(tmp_test_dir + "/folder2/file6.txt"));
     QVERIFY(qmz << (tmp_test_dir + "/file4.txt"));
     QVERIFY(qmz << (tmp_test_dir + "/folder"));
+    QVERIFY(qmz.contents().contains("folder/"));
+    QVERIFY(qmz.contents().contains("data_ckeck/"));
+    QVERIFY(qmz.contents().contains("file4.txt"));
+
 
     ZipContents content;
     content["empty_folder/"] = 0;
@@ -243,11 +249,17 @@ void test_qmicroz::test_addToZipPathEntryPath()
     QVERIFY(qmz);
 
     QVERIFY(qmz.addToZip(tmp_test_dir + "/empty_folder", "empty_folder"));
+    QVERIFY(qmz.isFolder(0));
+    QCOMPARE(qmz.contents().firstKey(), "empty_folder/");
     QVERIFY(qmz.addToZip(tmp_test_dir + "/data_ckeck", "dataCkeck"));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/folder2/file6.txt", "folder2/file6.txt"));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/file4.txt", "file4.txt"));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/folder/folder/file33.txt", "file55.txt"));
     QVERIFY(qmz.addToZip(tmp_test_dir + "/folder2/file6.txt", "fooFolder/file6.txt"));
+    QVERIFY(qmz.contents().contains("file4.txt"));
+    QVERIFY(qmz.contents().contains("dataCkeck/"));
+    //QVERIFY(qmz.contents().contains("fooFolder/"));
+    QVERIFY(qmz.contents().contains("fooFolder/file6.txt"));
 
     ZipContents content;
     content["empty_folder/"] = 0;
