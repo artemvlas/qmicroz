@@ -185,10 +185,8 @@ const ZipContents& QMicroz::updateZipContents()
     // iterating...
     for (int it = 0; it < count(); ++it) {
         const QString filename = name(it);
-        if (filename.isEmpty())
-            break;
-
-        m_zip_entries[filename] = it;
+        if (!filename.isEmpty())
+            m_zip_entries[filename] = it;
     }
 
     return m_zip_entries;
@@ -339,7 +337,11 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
 
     auto addFile = [pZip](const QString &source, const QString &entry) {
         std::function<bool()> func = [pZip, &source, &entry]() {
-            return tools::add_item_file(pZip, source, entry);
+            return mz_zip_writer_add_file(pZip,                        // zip archive
+                                          entry.toUtf8().constData(),  // entry name/path inside the zip
+                                          source.toUtf8().constData(), // filesystem path
+                                          NULL, 0,
+                                          tools::compressLevel(QFileInfo(source).size()));
         };
         return func;
     };
@@ -387,8 +389,19 @@ bool QMicroz::addToZip(const BufFile &buf_file)
     mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
 
     std::function<bool()> func = [pZip, &buf_file]() {
-        return tools::add_item_data(pZip, buf_file.name, buf_file.data, buf_file.modified);
-    };
+        const QByteArray &data = tools::isFolderName(buf_file.name) ? QByteArray() : buf_file.data;
+        time_t modified = buf_file.modified.isValid() ? buf_file.modified.toSecsSinceEpoch() : 0;
+
+        return mz_zip_writer_add_mem_ex_v2(pZip,
+                                           buf_file.name.toUtf8().constData(),  // entry name/path
+                                           data.constData(),                    // file data
+                                           data.size(),                         // file size
+                                           NULL, 0,
+                                           tools::compressLevel(data.size()),
+                                           0, 0,
+                                           modified > 0 ? &modified : NULL,     // last modified, NULL to set current time
+                                           NULL, 0, NULL, 0);
+    }; // lambda
 
     return addEntry(buf_file.name, func);
 }

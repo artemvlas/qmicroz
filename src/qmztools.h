@@ -18,21 +18,6 @@ static const QChar s_sep = u'/';
 // Returns info about the file contained in the archive
 mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index);
 
-/* Adds to the archive a file or folder entry.
- * <entry_name> is a name/path inside the archive,
- * <data> is the file data.
- *
- * To add a folder entry, append a slash ('/') to the <entry_name>.
- */
-bool add_item_data(mz_zip_archive *pZip, const QString &entry_name,
-                   const QByteArray &file_data, const QDateTime &last_modified);
-
-/* Adds a file entry and its data to the zip.
- * <fs_path> is the filesystem path;
- * <entry_name> is the name/path inside the archive.
- */
-bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &entry_name);
-
 // Extracts a file with the specified index from the archive to disk at the specified path
 bool extract_to_file(mz_zip_archive *pZip, int file_index, const QString &outpath);
 

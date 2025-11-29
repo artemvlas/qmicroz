@@ -24,32 +24,6 @@ mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index)
     return mz_zip_archive_file_stat();
 }
 
-bool add_item_data(mz_zip_archive *pZip, const QString &entry_name,
-                   const QByteArray &file_data, const QDateTime &last_modified)
-{
-    const QByteArray &data = isFolderName(entry_name) ? QByteArray() : file_data;
-    time_t modified = last_modified.isValid() ? last_modified.toSecsSinceEpoch() : 0;
-
-    return mz_zip_writer_add_mem_ex_v2(pZip,
-                                       entry_name.toUtf8().constData(),  // entry name/path
-                                       data.constData(),                 // file data
-                                       data.size(),                      // file size
-                                       NULL, 0,
-                                       compressLevel(data.size()),
-                                       0, 0,
-                                       modified > 0 ? &modified : NULL,  // last modified, NULL to set current time
-                                       NULL, 0, NULL, 0);
-}
-
-bool add_item_file(mz_zip_archive *pZip, const QString &fs_path, const QString &entry_name)
-{
-    return mz_zip_writer_add_file(pZip,                             // zip archive
-                                  entry_name.toUtf8().constData(),  // path inside the zip
-                                  fs_path.toUtf8().constData(),     // filesystem path
-                                  NULL, 0,
-                                  compressLevel(QFileInfo(fs_path).size()));
-}
-
 bool extract_to_file(mz_zip_archive *pZip, int file_index, const QString &outpath)
 {
     if (mz_zip_reader_extract_to_file(pZip,
