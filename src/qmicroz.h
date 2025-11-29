@@ -45,7 +45,7 @@ using ZipContents = QMap<QString, int>;
 class QMICROZ_EXPORT QMicroz
 {
 public:
-    enum Mode { ModeAuto, ModeRead, ModeWrite };
+    enum Mode : qint8 { ModeAuto, ModeRead, ModeWrite };
 
     QMicroz();
     ~QMicroz();
@@ -266,6 +266,12 @@ public:
 private:
     // Updates the list of current archive contents <m_zip_entries>
     const ZipContents& updateZipContents();
+
+    /* If the <entryName> is not in the <m_zip_entries> list:
+     * 1. adds item to the archive using the <addFunc>.
+     * 2. adds the <entryName> to the <m_zip_entries>.
+     */
+    bool addEntry(const QString &entryName, std::function<bool()> addFunc);
 
     // The void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;

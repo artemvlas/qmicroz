@@ -194,6 +194,15 @@ const ZipContents& QMicroz::updateZipContents()
     return m_zip_entries;
 }
 
+bool QMicroz::addEntry(const QString &entryName, std::function<bool()> addFunc)
+{
+    if (m_zip_entries.contains(entryName) || !addFunc())
+        return false;
+
+    m_zip_entries[entryName] = m_zip_entries.size();
+    return true;
+}
+
 qint64 QMicroz::sizeUncompressed() const
 {
     qint64 total_size = 0;

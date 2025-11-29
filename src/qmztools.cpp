@@ -7,7 +7,7 @@
 */
 #include "qmztools.h"
 #include <QDebug>
-#include <QDirIterator>
+#include <QFileInfo>
 #include <QStringBuilder>
 
 namespace tools {
