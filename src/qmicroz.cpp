@@ -14,6 +14,7 @@
 #include "qmicroz.h"
 #include "qmztools.h"
 #include <QDir>
+#include <QDirIterator>
 #include <QDebug>
 
 const QString QMicroz::s_zip_ext = QStringLiteral(u".zip");
@@ -318,22 +319,31 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
 
         return res;
     } else if (fi_source.isDir()) {
-        QMap<QString, QString> folderContent;
-        folderContent.insert(source_path, QString());
-        folderContent.insert(tools::folderContentRel(source_path));
-
         bool added = false;
 
-        // parsing a list of paths
-        QMap<QString, QString>::const_iterator it;
-        for (it = folderContent.constBegin(); it != folderContent.constEnd(); ++it) {
-            QFileInfo fi(it.key());
-            const QString relPath = tools::joinPath(entry_path, it.value());
+        // adding the folder entry itself
+        if (!m_zip_entries.contains(tools::toFolderName(entry_path))
+            && tools::add_item_data(pZip, tools::toFolderName(entry_path), QByteArray(), QFileInfo(entry_path).lastModified()))
+        {
+            m_zip_entries[tools::toFolderName(entry_path)] = m_zip_entries.size();
+            added = true;
+        }
+
+        // adding folder contents
+        QDir dir(source_path);
+
+        QDirIterator it(source_path,
+                        QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden,
+                        QDirIterator::Subdirectories);
+
+        while (it.hasNext()) {
+            const QString fullPath = it.next();
+            const QString relPath = tools::joinPath(entry_path, dir.relativeFilePath(fullPath));
 
             // TODO: checking existing entries <m_zip_entries.contains> needs to be automated.
             // existence check
-            if (fi.isFile() && m_zip_entries.contains(relPath)
-                || fi.isDir() && m_zip_entries.contains(tools::toFolderName(relPath)))
+            if (it.fileInfo().isFile() && m_zip_entries.contains(relPath)
+                || it.fileInfo().isDir() && m_zip_entries.contains(tools::toFolderName(relPath)))
             {
                 if (m_verbose)
                     qDebug() << "Exists:" << relPath;
@@ -344,9 +354,9 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
                 qDebug() << "Adding:" << relPath;
 
             // adding item
-            if (fi.isFile() && tools::add_item_file(pZip, it.key(), relPath))
+            if (it.fileInfo().isFile() && tools::add_item_file(pZip, fullPath, relPath))
                 m_zip_entries[relPath] = m_zip_entries.size();
-            else if (fi.isDir() && tools::add_item_data(pZip, tools::toFolderName(relPath), QByteArray(), fi.lastModified()))
+            else if (it.fileInfo().isDir() && tools::add_item_data(pZip, tools::toFolderName(relPath), QByteArray(), it.fileInfo().lastModified()))
                 m_zip_entries[tools::toFolderName(relPath)] = m_zip_entries.size();
             else // adding failed
                 return false;
@@ -379,9 +389,9 @@ bool QMicroz::addToZip(const BufFile &buf_file)
     using namespace tools;
 
     mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
-    const QByteArray &data = isFileName(buf_file.name) ? buf_file.data : QByteArray();
+    // const QByteArray &data = isFileName(buf_file.name) ? buf_file.data : QByteArray();
 
-    bool res = add_item_data(pZip, buf_file.name, data, buf_file.modified);
+    bool res = add_item_data(pZip, buf_file.name, buf_file.data, buf_file.modified);
 
     if (res)
         m_zip_entries[buf_file.name] = m_zip_entries.size();

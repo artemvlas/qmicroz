@@ -92,38 +92,6 @@ QByteArray extract_to_buffer(mz_zip_archive *pZip, int file_index, bool copy_dat
     return QByteArray();
 }
 
-QStringList folderContent(const QString &folder)
-{
-    QStringList items;
-
-    QDirIterator it(folder,
-                    QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden,
-                    QDirIterator::Subdirectories);
-
-    while (it.hasNext()) {
-        items << it.next();
-    }
-
-    return items;
-}
-
-QMap<QString, QString> folderContentRel(const QString &folder)
-{
-    QMap<QString, QString> found;
-    QDir dir(folder);
-
-    QDirIterator it(folder,
-                    QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden,
-                    QDirIterator::Subdirectories);
-
-    while (it.hasNext()) {
-        const QString fullPath = it.next();
-        found.insert(fullPath, dir.relativeFilePath(fullPath));
-    }
-
-    return found;
-}
-
 QString joinPath(const QString &abs_path, const QString &rel_path)
 {
     auto isSep = [] (QChar ch) { return ch == '/' || ch == '\\'; };
