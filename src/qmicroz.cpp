@@ -344,20 +344,13 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
         return func;
     };
 
-    auto addFolder = [pZip](const QString &entry, const QDateTime &modified) {
-        std::function<bool()> func = [pZip, &entry, &modified]() {
-            return tools::add_item_data(pZip, tools::toFolderName(entry), QByteArray(), modified);
-        };
-        return func;
-    };
-
     QFileInfo fi_source(source_path);
+
     if (fi_source.isFile()) {
         return addEntry(entry_path, addFile(source_path, entry_path));
     } else if (fi_source.isDir()) {
         // adding the folder entry itself
-        bool added = addEntry(tools::toFolderName(entry_path),
-                              addFolder(entry_path, QFileInfo(source_path).lastModified()));
+        bool added = addToZip(BufFile(tools::toFolderName(entry_path), fi_source.lastModified()));
 
         // adding folder contents
         QDir dir(source_path);
@@ -369,9 +362,10 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
         while (it.hasNext()) {
             const QString fullPath = it.next();
             const QString relPath = tools::joinPath(entry_path, dir.relativeFilePath(fullPath));
+            const QFileInfo &fi = it.fileInfo();
 
-            if ((it.fileInfo().isFile() && addEntry(relPath, addFile(fullPath, relPath)))
-                || (it.fileInfo().isDir() && addEntry(tools::toFolderName(relPath), addFolder(relPath, it.fileInfo().lastModified()))))
+            if ((fi.isFile() && addEntry(relPath, addFile(fullPath, relPath)))
+                || (fi.isDir() && addToZip(BufFile(tools::toFolderName(relPath), fi.lastModified()))))
             {
                 added = true;
             }
