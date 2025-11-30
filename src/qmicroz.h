@@ -137,16 +137,19 @@ public:
 
     /*** Adding to the archive ***/
     // Adds a file or folder (including all contents) to the root of the archive
-    bool addToZip(const QString &source_path);
+    bool addToZip(const QString &sourcePath);
 
-    /* Adds a file or folder (including contents) to the <entry> name/path.
+    /* Adds a file or folder (including contents) to the archive.
+     * <sourcePath> is a path to the file or folder on the file system.
+     * <entryName> its name or path inside the archive.
+     *
      * ("/home/folder/file.txt", "file.txt")        --> "file.txt"
      * ("/home/folder/file.txt", "folder/file.txt") --> "folder/file.txt"
      * ("/home/folder/file.txt", "newfile.txt")     --> "newfile.txt"
      * ("home/folder", "folder")                    --> "folder/", "folder/file.txt"
      * ("home/folder", "newfolder")                 --> "newfolder/", "newfolder/file.txt"
      */
-    bool addToZip(const QString &source_path, const QString &entry_path);
+    bool addToZip(const QString &sourcePath, const QString &entryName);
 
     /* Adds a file based on <buf_file> data.
      * To add an empty folder entry, append '/' to the <buf_file.name>

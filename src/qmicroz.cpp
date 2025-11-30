@@ -313,17 +313,17 @@ QDateTime QMicroz::lastModified(int index) const
     return sec > 0 ? QDateTime::fromSecsSinceEpoch(sec) : QDateTime();
 }
 
-bool QMicroz::addToZip(const QString &source_path)
+bool QMicroz::addToZip(const QString &sourcePath)
 {
-    if (!QFileInfo::exists(source_path))
+    if (!QFileInfo::exists(sourcePath))
         return false;
 
-    return addToZip(source_path, QFileInfo(source_path).fileName());
+    return addToZip(sourcePath, QFileInfo(sourcePath).fileName());
 }
 
-bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
+bool QMicroz::addToZip(const QString &sourcePath, const QString &entryName)
 {
-    if (!m_archive || entry_path.isEmpty() || !QFileInfo::exists(source_path)) {
+    if (!m_archive || entryName.isEmpty() || !QFileInfo::exists(sourcePath)) {
         return false;
     }
 
@@ -332,9 +332,12 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
         return false;
     }
 
-    mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
+    /* <source> is a path to the file on the file system.
+     * <entry> its name or path inside the archive.
+     */
+    auto addFile = [this](const QString &source, const QString &entry) {
+        mz_zip_archive *pZip = static_cast<mz_zip_archive *>(this->m_archive);
 
-    auto addFile = [pZip](const QString &source, const QString &entry) {
         std::function<bool()> func = [pZip, &source, &entry]() {
             return mz_zip_writer_add_file(pZip,                        // zip archive
                                           entry.toUtf8().constData(),  // entry name/path inside the zip
@@ -342,31 +345,40 @@ bool QMicroz::addToZip(const QString &source_path, const QString &entry_path)
                                           NULL, 0,
                                           tools::compressLevel(QFileInfo(source).size()));
         };
-        return func;
-    };
 
-    QFileInfo fi_source(source_path);
+        return this->addEntry(entry, func);
+    }; // lambda addFile -> bool
+
+    /* <entry> is a name or path of the folder inside the archive.
+     * <modified> its last modified date; invalid QDateTime() to set current.
+     */
+    auto addFolder = [this](const QString &entry, const QDateTime &modified) {
+        BufFile bf(tools::toFolderName(entry), modified);
+        return this->addToZip(bf);
+    }; // lambda addFolder -> bool
+
+    QFileInfo fi_source(sourcePath);
 
     if (fi_source.isFile()) {
-        return addEntry(entry_path, addFile(source_path, entry_path));
+        return addFile(sourcePath, entryName);
     } else if (fi_source.isDir()) {
         // adding the folder entry itself
-        bool added = addToZip(BufFile(tools::toFolderName(entry_path), fi_source.lastModified()));
+        bool added = addFolder(entryName, fi_source.lastModified());
 
         // adding folder contents
-        QDir dir(source_path);
+        QDir dir(sourcePath);
 
-        QDirIterator it(source_path,
+        QDirIterator it(sourcePath,
                         QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden | QDir::Readable,
                         QDirIterator::Subdirectories);
 
         while (it.hasNext()) {
             const QString fullPath = it.next();
-            const QString relPath = tools::joinPath(entry_path, dir.relativeFilePath(fullPath));
+            const QString relPath = tools::joinPath(entryName, dir.relativeFilePath(fullPath));
             const QFileInfo &fi = it.fileInfo();
 
-            if ((fi.isFile() && addEntry(relPath, addFile(fullPath, relPath)))
-                || (fi.isDir() && addToZip(BufFile(tools::toFolderName(relPath), fi.lastModified()))))
+            if ((fi.isFile() && addFile(fullPath, relPath))
+                || (fi.isDir() && addFolder(relPath, fi.lastModified())))
             {
                 added = true;
             }
