@@ -24,20 +24,6 @@ mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index)
     return mz_zip_archive_file_stat();
 }
 
-bool extract_to_file(mz_zip_archive *pZip, int file_index, const QString &outpath)
-{
-    if (mz_zip_reader_extract_to_file(pZip,
-                                      file_index,
-                                      outpath.toUtf8().constData(),
-                                      0))
-    {
-        return true;
-    }
-
-    qWarning() << "QMicroz: Failed to extract file:" << file_index;
-    return false;
-}
-
 QByteArray extract_to_buffer(mz_zip_archive *pZip, int file_index, bool copy_data)
 {
     size_t data_size = 0;

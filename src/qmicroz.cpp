@@ -479,8 +479,9 @@ bool QMicroz::extractIndex(int index, const QString &output_path)
     };
 
     if (tools::isFileName(filename)) {
+        QDebug deb = qDebug();
         if (m_verbose)
-            qDebug() << "Extracting:" << filename; // or "Extracting:" << (index + 1) << '/' << count() << filename;
+            deb << "Extracting:" << filename; // or "Extracting:" << (index + 1) << '/' << count() << filename;
 
         const QString parent_folder = QFileInfo(output_path).absolutePath();
 
@@ -489,7 +490,13 @@ bool QMicroz::extractIndex(int index, const QString &output_path)
             return false;
 
         // extracting...
-        return tools::extract_to_file(static_cast<mz_zip_archive *>(m_archive), index, output_path);
+        mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
+        bool res = mz_zip_reader_extract_to_file(pZip, index, output_path.toUtf8().constData(), 0);
+
+        if (m_verbose)
+            deb << (res ? "OK" : "FAILED");
+
+        return res;
     }
 
     // <filename> is a folder entry

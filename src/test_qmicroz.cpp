@@ -336,6 +336,7 @@ void test_qmicroz::test_extractFolder()
 {
     QString zip_file = tmp_test_dir + "/test_extract_folder.zip";
     QMicroz qmz(zip_file, QMicroz::ModeWrite);
+    //qmz.setVerbose(true);
 
     qmz << BufFile("file111.txt", "Some data to test file111.txt");
     qmz << BufFile("folder111/");

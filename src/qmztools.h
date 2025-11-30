@@ -18,9 +18,6 @@ static const QChar s_sep = u'/';
 // Returns info about the file contained in the archive
 mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index);
 
-// Extracts a file with the specified index from the archive to disk at the specified path
-bool extract_to_file(mz_zip_archive *pZip, int file_index, const QString &outpath);
-
 // Extracts file data at the specified index into a buffer
 QByteArray extract_to_buffer(mz_zip_archive *pZip, int file_index, bool copy_data = true);
 
