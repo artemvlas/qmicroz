@@ -16,6 +16,7 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QDebug>
+#include <iostream>
 
 const QString QMicroz::s_zip_ext = QStringLiteral(u".zip");
 
@@ -197,25 +198,23 @@ bool QMicroz::addEntry(const QString &entryName, std::function<bool()> addFunc)
     if (entryName.isEmpty())
         return false;
 
-    QDebug deb = qDebug();
-
     if (m_verbose)
-        deb << "Adding:" << entryName;
+        std::cout << "Adding: " << entryName.toStdString();
 
     if (m_zip_entries.contains(entryName)) {
         if (m_verbose)
-            deb << "EXISTS";
+            std::cout << " " << "EXISTS" << std::endl;
         return false;
     }
 
     if (!addFunc()) {
         if (m_verbose)
-            deb << "FAILED";
+            std::cout << " " << "FAILED" << std::endl;
         return false;
     }
 
     if (m_verbose)
-        deb << "OK";
+        std::cout << " " << "OK" << std::endl;
 
     m_zip_entries[entryName] = m_zip_entries.size();
     return true;
@@ -479,9 +478,8 @@ bool QMicroz::extractIndex(int index, const QString &output_path)
     };
 
     if (tools::isFileName(filename)) {
-        QDebug deb = qDebug();
         if (m_verbose)
-            deb << "Extracting:" << filename; // or "Extracting:" << (index + 1) << '/' << count() << filename;
+            std::cout << "Extracting: " << filename.toStdString(); // or "Extracting:" << (index + 1) << '/' << count() << filename;
 
         const QString parent_folder = QFileInfo(output_path).absolutePath();
 
@@ -494,7 +492,10 @@ bool QMicroz::extractIndex(int index, const QString &output_path)
         bool res = mz_zip_reader_extract_to_file(pZip, index, output_path.toUtf8().constData(), 0);
 
         if (m_verbose)
-            deb << (res ? "OK" : "FAILED");
+            std::cout << " " << (res ? "OK" : "FAILED") << std::endl;
+
+        if (!res)
+            qWarning() << "Failed to extract index" << index;
 
         return res;
     }
@@ -592,21 +593,22 @@ BufFile QMicroz::extractToBuf(int index) const
         return res;
 
     if (m_verbose)
-        qDebug() << "Extracting:" << filename;
+        std::cout << "Extracting: " << filename.toStdString();
 
     res.name = filename;
 
     if (tools::isFileName(filename)) {
         // extract file
         const QByteArray ex_data = extractData(index);
+        bool success = !ex_data.isNull();
 
-        if (!ex_data.isNull()) {
+        if (success) {
             res.data = ex_data;
             res.modified = lastModified(index);
-
-            if (m_verbose)
-                qDebug() << "Unzipped:" << ex_data.size() << "bytes";
         }
+
+        if (m_verbose)
+            std::cout << " " << (success ? "OK" : "FAILED") << std::endl;
     }
 
     return res;
