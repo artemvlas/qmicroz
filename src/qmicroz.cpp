@@ -22,19 +22,19 @@ const QString QMicroz::s_zip_ext = QStringLiteral(u".zip");
 
 QMicroz::QMicroz() {}
 
-QMicroz::QMicroz(const char* zip_path)
+QMicroz::QMicroz(const char* zipPath)
 {
-    setZipFile(QString(zip_path));
+    setZipFile(QString(zipPath));
 }
 
-QMicroz::QMicroz(const QString &zip_path, Mode mode)
+QMicroz::QMicroz(const QString &zipPath, Mode mode)
 {
-    setZipFile(zip_path, mode);
+    setZipFile(zipPath, mode);
 }
 
-QMicroz::QMicroz(const QByteArray &buffered_zip)
+QMicroz::QMicroz(const QByteArray &bufferedZip)
 {
-    setZipBuffer(buffered_zip);
+    setZipBuffer(bufferedZip);
 }
 
 QMicroz::~QMicroz()
@@ -57,7 +57,7 @@ void QMicroz::setVerbose(bool enable)
     m_verbose = enable;
 }
 
-bool QMicroz::setZipFile(const QString &zip_path, Mode mode)
+bool QMicroz::setZipFile(const QString &zipPath, Mode mode)
 {
     // close the currently opened one if any
     closeArchive();
@@ -66,13 +66,13 @@ bool QMicroz::setZipFile(const QString &zip_path, Mode mode)
 
     switch (mode) {
     case ModeAuto:
-        if (!QFileInfo::exists(zip_path))
+        if (!QFileInfo::exists(zipPath))
             zamode = ModeWrite;
-        else if (isZipFile(zip_path))
+        else if (isZipFile(zipPath))
             zamode = ModeRead;
         break;
     case ModeRead:
-        if (isZipFile(zip_path))
+        if (isZipFile(zipPath))
             zamode = ModeRead;
         break;
     case ModeWrite:
@@ -83,26 +83,26 @@ bool QMicroz::setZipFile(const QString &zip_path, Mode mode)
     }
 
     if (zamode == 0) {
-        qWarning() << WARNING_WRONGPATH << zip_path;
+        qWarning() << WARNING_WRONGPATH << zipPath;
         return false;
     }
 
     // create and open a zip archive
     mz_zip_archive *pZip = new mz_zip_archive();
-    const char* zapath = zip_path.toUtf8().constData();
+    const char* zapath = zipPath.toUtf8().constData();
 
     // Here the <zamode> can be either ModeRead or ModeWrite
     bool success = (zamode == ModeWrite) ? mz_zip_writer_init_file(pZip, zapath, 0)
                                          : mz_zip_reader_init_file(pZip, zapath, 0);
 
     if (!success) {
-        qWarning() << "QMicroz: Failed to open zip file:" << zip_path;
+        qWarning() << "QMicroz: Failed to open zip file:" << zipPath;
         delete pZip;
         return false;
     }
 
     m_archive = pZip;
-    m_zip_path = zip_path;
+    m_zip_path = zipPath;
 
     if (isModeReading()) {
         updateZipContents();
@@ -112,9 +112,9 @@ bool QMicroz::setZipFile(const QString &zip_path, Mode mode)
     return true;
 }
 
-bool QMicroz::setZipBuffer(const QByteArray &buffered_zip)
+bool QMicroz::setZipBuffer(const QByteArray &bufferedZip)
 {
-    if (!isArchive(buffered_zip)) {
+    if (!isArchive(bufferedZip)) {
         qWarning() << "QMicroz: The byte array is not zipped";
         return false;
     }
@@ -122,7 +122,7 @@ bool QMicroz::setZipBuffer(const QByteArray &buffered_zip)
     // open zip archive
     mz_zip_archive *pZip = new mz_zip_archive();
 
-    if (mz_zip_reader_init_mem(pZip, buffered_zip.constData(), buffered_zip.size(), 0)) {
+    if (mz_zip_reader_init_mem(pZip, bufferedZip.constData(), bufferedZip.size(), 0)) {
         // close the currently opened one if any
         closeArchive();
 
@@ -137,15 +137,15 @@ bool QMicroz::setZipBuffer(const QByteArray &buffered_zip)
     return false;
 }
 
-void QMicroz::setOutputFolder(const QString &output_folder)
+void QMicroz::setOutputFolder(const QString &outputFolder)
 {
-    if (output_folder.isEmpty() && !m_zip_path.isEmpty()) {
+    if (outputFolder.isEmpty() && !m_zip_path.isEmpty()) {
         // set zip file's parent folder
         m_output_folder = QFileInfo(m_zip_path).absolutePath();
         return;
     }
 
-    m_output_folder = output_folder;
+    m_output_folder = outputFolder;
 }
 
 const QString& QMicroz::outputFolder() const
@@ -249,26 +249,26 @@ int QMicroz::count() const
     return mz_zip_reader_get_num_files(static_cast<mz_zip_archive *>(m_archive));
 }
 
-int QMicroz::findIndex(const QString &file_name) const
+int QMicroz::findIndex(const QString &fileName) const
 {
     // full path matching
-    if (m_zip_entries.contains(file_name))
-        return m_zip_entries.value(file_name);
+    if (m_zip_entries.contains(fileName))
+        return m_zip_entries.value(fileName);
 
-    ZipContents::const_iterator it;
+    // deep search, matching only the name, e.g. "file.txt" for "folder/file.txt"
+    if (!fileName.contains(tools::s_sep)) {
+        ZipContents::const_iterator it;
 
-    // deep search, matching only the name
-    if (!file_name.contains(tools::s_sep)) {
         for (it = m_zip_entries.constBegin(); it != m_zip_entries.constEnd(); ++it) {
             if (tools::isFileName(it.key())
-                && file_name == QFileInfo(it.key()).fileName())
+                && fileName == QFileInfo(it.key()).fileName())
             {
                 return it.value();
             }
         }
     }
 
-    qDebug() << "QMicroz: Index not found:" << file_name;
+    qDebug() << "QMicroz: Index not found:" << fileName;
     return -1;
 }
 
@@ -390,7 +390,7 @@ bool QMicroz::addToZip(const QString &sourcePath, const QString &entryName)
     return false;
 }
 
-bool QMicroz::addToZip(const BufFile &buf_file)
+bool QMicroz::addToZip(const BufFile &bufFile)
 {
     if (!isModeWriting()) {
         qWarning() << WARNING_WRONGMODE;
@@ -399,12 +399,12 @@ bool QMicroz::addToZip(const BufFile &buf_file)
 
     mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
 
-    std::function<bool()> func = [pZip, &buf_file]() {
-        const QByteArray &data = tools::isFolderName(buf_file.name) ? QByteArray() : buf_file.data;
-        time_t modified = buf_file.modified.isValid() ? buf_file.modified.toSecsSinceEpoch() : 0;
+    std::function<bool()> func = [pZip, &bufFile]() {
+        const QByteArray &data = tools::isFolderName(bufFile.name) ? QByteArray() : bufFile.data;
+        time_t modified = bufFile.modified.isValid() ? bufFile.modified.toSecsSinceEpoch() : 0;
 
         return mz_zip_writer_add_mem_ex_v2(pZip,
-                                           buf_file.name.toUtf8().constData(),  // entry name/path
+                                           bufFile.name.toUtf8().constData(),   // entry name/path
                                            data.constData(),                    // file data
                                            data.size(),                         // file size
                                            NULL, 0,
@@ -414,13 +414,13 @@ bool QMicroz::addToZip(const BufFile &buf_file)
                                            NULL, 0, NULL, 0);
     }; // lambda
 
-    return addEntry(buf_file.name, func);
+    return addEntry(bufFile.name, func);
 }
 
-bool QMicroz::addToZip(const BufList &buf_data)
+bool QMicroz::addToZip(const BufList &bufList)
 {
     BufList::const_iterator it;
-    for (it = buf_data.constBegin(); it != buf_data.constEnd(); ++it) {
+    for (it = bufList.constBegin(); it != bufList.constEnd(); ++it) {
         if (addToZip(BufFile(it.key(), it.value())))
             m_zip_entries[it.key()] = m_zip_entries.size();
         else
@@ -461,7 +461,7 @@ bool QMicroz::extractIndex(int index)
     return extractIndex(index, tools::joinPath(outputFolder(), name(index)));
 }
 
-bool QMicroz::extractIndex(int index, const QString &output_path)
+bool QMicroz::extractIndex(int index, const QString &outputPath)
 {
     if (index == -1)
         return false;
@@ -493,7 +493,7 @@ bool QMicroz::extractIndex(int index, const QString &output_path)
         if (m_verbose)
             std::cout << "Extracting: " << filename.toStdString(); // or "Extracting:" << (index + 1) << '/' << count() << filename;
 
-        const QString parent_folder = QFileInfo(output_path).absolutePath();
+        const QString parent_folder = QFileInfo(outputPath).absolutePath();
 
         // create parent folder on disk if not any
         if (!createFolder(parent_folder))
@@ -501,7 +501,7 @@ bool QMicroz::extractIndex(int index, const QString &output_path)
 
         // extracting...
         mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
-        bool res = mz_zip_reader_extract_to_file(pZip, index, output_path.toUtf8().constData(), 0);
+        bool res = mz_zip_reader_extract_to_file(pZip, index, outputPath.toUtf8().constData(), 0);
 
         if (m_verbose)
             std::cout << " " << (res ? "OK" : "FAILED") << std::endl;
@@ -513,17 +513,17 @@ bool QMicroz::extractIndex(int index, const QString &output_path)
     }
 
     // <filename> is a folder entry
-    return createFolder(output_path);
+    return createFolder(outputPath);
 }
 
-bool QMicroz::extractFile(const QString &file_name)
+bool QMicroz::extractFile(const QString &fileName)
 {
-    return extractIndex(findIndex(file_name));
+    return extractIndex(findIndex(fileName));
 }
 
-bool QMicroz::extractFile(const QString &file_name, const QString &output_path)
+bool QMicroz::extractFile(const QString &fileName, const QString &outputPath)
 {
-    return extractIndex(findIndex(file_name), output_path);
+    return extractIndex(findIndex(fileName), outputPath);
 }
 
 bool QMicroz::extractFolder(int index)
@@ -534,7 +534,7 @@ bool QMicroz::extractFolder(int index)
     return extractFolder(index, tools::joinPath(outputFolder(), name(index)));
 }
 
-bool QMicroz::extractFolder(int index, const QString &output_path)
+bool QMicroz::extractFolder(int index, const QString &outputPath)
 {
     if (!isFolder(index))
         return false;
@@ -548,7 +548,7 @@ bool QMicroz::extractFolder(int index, const QString &output_path)
             // e.g. "folder_entry/file" --> "file"
             QString relPath = it.key().mid(folder_entry.size());
 
-            if (extractIndex(it.value(), tools::joinPath(output_path, relPath)))
+            if (extractIndex(it.value(), tools::joinPath(outputPath, relPath)))
                 extracted = true;
             else
                 qWarning() << "Failed to extract:" << it.key();
@@ -626,9 +626,9 @@ BufFile QMicroz::extractToBuf(int index) const
     return res;
 }
 
-BufFile QMicroz::extractFileToBuf(const QString &file_name) const
+BufFile QMicroz::extractFileToBuf(const QString &fileName) const
 {
-    return extractToBuf(findIndex(file_name));
+    return extractToBuf(findIndex(fileName));
 }
 
 // Recommended in most cases if speed and memory requirements are not critical.
@@ -744,16 +744,16 @@ bool QMicroz::compress(const QStringList &paths, const QString &zip_path)
     return qmz.count() > 0;
 }
 
-bool QMicroz::compress(const BufList &buf_data, const QString &zip_path)
+bool QMicroz::compress(const BufList &buf_list, const QString &zip_path)
 {
-    if (buf_data.isEmpty()) {
+    if (buf_list.isEmpty()) {
         qWarning() << WARNING_NOINPUTDATA;
         return false;
     }
 
     QMicroz qmz(zip_path, ModeWrite);
 
-    return qmz && qmz.addToZip(buf_data);
+    return qmz && qmz.addToZip(buf_list);
 }
 
 bool QMicroz::compress(const BufFile &buf_file, const QString &zip_path)

@@ -53,34 +53,34 @@ public:
     ~QMicroz();
 
     // To avoid ambiguity...
-    explicit QMicroz(const char *zip_path);
+    explicit QMicroz(const char *zipPath);
 
     // Sets <zip_path> and opens a new archive for Reading or Writing same as <setZipFile>
-    explicit QMicroz(const QString &zip_path, Mode mode = ModeAuto);
+    explicit QMicroz(const QString &zipPath, Mode mode = ModeAuto);
 
     // existing zip archive buffered in memory
-    explicit QMicroz(const QByteArray &buffered_zip);
+    explicit QMicroz(const QByteArray &bufferedZip);
 
     /* Sets and opens the zip for the current object.
      * ModeAuto
-     * If <zip_path> is an existing zip archive, opens it for Reading.
-     * If <zip_path> does not exist, opens for Writing.
+     * If <zipPath> is an existing zip archive, opens it for Reading.
+     * If <zipPath> does not exist, opens for Writing.
      *
      * ModeRead
-     * If <zip_path> is an existing zip archive, opens it for Reading.
+     * If <zipPath> is an existing zip archive, opens it for Reading.
      * Otherwise returns false.
      *
      * ModeWrite
-     * Sets <zip_path> and opens the archive for Writing.
+     * Sets <zipPath> and opens the archive for Writing.
      * Regardless of the file existence.
      */
-    bool setZipFile(const QString &zip_path, Mode mode = ModeAuto);
+    bool setZipFile(const QString &zipPath, Mode mode = ModeAuto);
 
-    // Sets a buffered in memory zip archive.
-    bool setZipBuffer(const QByteArray &buffered_zip);
+    // Sets a buffered in memory zip archive
+    bool setZipBuffer(const QByteArray &bufferedZip);
 
     // Path to the folder where to place the extracted files; empty --> parent dir
-    void setOutputFolder(const QString &output_folder = QString());
+    void setOutputFolder(const QString &outputFolder = QString());
 
     // Closes the currently opened zip and clears the member values
     void closeArchive();
@@ -113,8 +113,8 @@ public:
     // Returns the number of items in the archive
     int count() const;
 
-    // Returns the index by the specified <file_name>, -1 if not found
-    int findIndex(const QString &file_name) const;
+    // Returns index of the <fileName> entry, -1 if not found
+    int findIndex(const QString &fileName) const;
 
     // Whether the specified index belongs to the folder
     bool isFolder(int index) const;
@@ -151,13 +151,13 @@ public:
      */
     bool addToZip(const QString &sourcePath, const QString &entryName);
 
-    /* Adds a file based on <buf_file> data.
-     * To add an empty folder entry, append '/' to the <buf_file.name>
+    /* Adds a file based on <bufFile> data.
+     * To add an empty folder entry, append '/' to the <bufFile.name>
      */
-    bool addToZip(const BufFile &buf_file);
+    bool addToZip(const BufFile &bufFile);
 
     // Adds files from the listed paths and data
-    bool addToZip(const BufList &buf_data);
+    bool addToZip(const BufList &bufList);
 
 
     /*** Extraction ***/
@@ -167,20 +167,20 @@ public:
     /* Extracts the file with <index> to disk: --> <output_folder/entry_path> */
     bool extractIndex(int index);
 
-    /* Extracts the file with <index> to disk: --> custom <output_path> */
-    bool extractIndex(int index, const QString &output_path);
+    /* Extracts the file with <index> to disk: --> custom <outputPath> */
+    bool extractIndex(int index, const QString &outputPath);
 
-    // Finds the <file_name> and extracts if any; slower than 'extractIndex'
-    bool extractFile(const QString &file_name);
+    // Finds the <fileName> and extracts if any; slower than 'extractIndex'
+    bool extractFile(const QString &fileName);
 
-    // Finds the <file_name> and extracts to <output_path>
-    bool extractFile(const QString &file_name, const QString &output_path);
+    // Finds the <fileName> and extracts to <outputPath>
+    bool extractFile(const QString &fileName, const QString &outputPath);
 
     /* Extracts a folder <index> and its contents to disk: <m_output_folder/folder_entry/contents> */
     bool extractFolder(int index);
 
-    /* Extracts a folder <index> and its contents to disk: <output_path/contents> */
-    bool extractFolder(int index, const QString &output_path);
+    /* Extracts a folder <index> and its contents to disk: <outputPath/contents> */
+    bool extractFolder(int index, const QString &outputPath);
 
     // Unzips all files into the RAM buffer { path : data }
     BufList extractToBuf() const;
@@ -188,8 +188,8 @@ public:
     // Extracts the file with <index> to buffer
     BufFile extractToBuf(int index) const;
 
-    // Finds the <file_name> and extracts to buffer, if any; slower than <index>
-    BufFile extractFileToBuf(const QString &file_name) const;
+    // Finds the <fileName> and extracts to buffer, if any; slower than <index>
+    BufFile extractFileToBuf(const QString &fileName) const;
 
     // Returns the extracted file data; QByteArray owns the copied data
     QByteArray extractData(int index) const;
@@ -218,7 +218,7 @@ public:
     static bool compress(const QStringList &paths, const QString &zip_path);
 
     // Creates an archive with files from the listed paths and data
-    static bool compress(const BufList &buf_data, const QString &zip_path);
+    static bool compress(const BufList &buf_list, const QString &zip_path);
 
     // Creates an archive containing a single file based on <buf_file> name and data
     static bool compress(const BufFile &buf_file, const QString &zip_path);
@@ -241,9 +241,9 @@ public:
     explicit operator bool() const { return (bool)m_archive; }
 
     /* Adds an item to the archive. */
-    bool operator<<(const QString &source_path) { return addToZip(source_path); }
-    bool operator<<(const BufFile &buf_file) { return addToZip(buf_file); }
-    bool operator<<(const BufList &buf_list) { return addToZip(buf_list); }
+    bool operator<<(const QString &sourcePath) { return addToZip(sourcePath); }
+    bool operator<<(const BufFile &bufFile) { return addToZip(bufFile); }
+    bool operator<<(const BufList &bufList) { return addToZip(bufList); }
 
 
     /*** OBSOLETE ***/
