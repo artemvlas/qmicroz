@@ -191,10 +191,16 @@ public:
     // Finds the <fileName> and extracts to buffer, if any; slower than <index>
     BufFile extractFileToBuf(const QString &fileName) const;
 
-    // Returns the extracted file data; QByteArray owns the copied data
+    /* Returns the extracted file data.
+     * QByteArray owns the copied data.
+     * Recommended in most cases if speed and memory requirements are not critical.
+     */
     QByteArray extractData(int index) const;
 
-    // QByteArray does NOT own the data! To free memory: delete _array.constData();
+    /* QByteArray holds only a pointer and does NOT own the data!
+     * To free memory: delete byteArray.constData();
+     * Recommended for performance optimization or more flexible handling of the data pointer.
+     */
     QByteArray extractDataRef(int index) const;
 
 

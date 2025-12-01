@@ -437,18 +437,10 @@ bool QMicroz::extractAll()
         return false;
     }
 
-    if (m_verbose)
-        qDebug() << "Extracting" << count() << "items to:" << outputFolder();
-
     for (int i = 0; i < count(); ++i) {
-        if (!extractIndex(i)) {
-            qWarning() << "Extracting failed:" << i << name(i);
+        if (!extractIndex(i))
             return false;
-        }
     }
-
-    if (m_verbose)
-        qDebug() << "Complete.";
 
     return true;
 }
@@ -507,7 +499,7 @@ bool QMicroz::extractIndex(int index, const QString &outputPath)
             std::cout << " " << (res ? "OK" : "FAILED") << std::endl;
 
         if (!res)
-            qWarning() << "Failed to extract index" << index;
+            qWarning() << "QMicroz: Failed to extract file:" << index << filename;
 
         return res;
     }
@@ -550,8 +542,6 @@ bool QMicroz::extractFolder(int index, const QString &outputPath)
 
             if (extractIndex(it.value(), tools::joinPath(outputPath, relPath)))
                 extracted = true;
-            else
-                qWarning() << "Failed to extract:" << it.key();
         }
     }
 
@@ -572,18 +562,12 @@ BufList QMicroz::extractToBuf() const
         const QString filename = name(it);
 
         if (tools::isFileName(filename)) {
-            if (m_verbose)
-                qDebug() << "Extracting:" << (it + 1) << '/' << count() << filename;
-
             // extract file
             const QByteArray data = extractData(it);
             if (!data.isNull())
                 res[filename] = data;
         }
     }
-
-    if (m_verbose)
-        qDebug() << "Unzipped:" << res.size() << "files";
 
     return res;
 }
@@ -604,23 +588,12 @@ BufFile QMicroz::extractToBuf(int index) const
     if (filename.isEmpty())
         return res;
 
-    if (m_verbose)
-        std::cout << "Extracting: " << filename.toStdString();
-
     res.name = filename;
+    res.modified = lastModified(index);
 
     if (tools::isFileName(filename)) {
-        // extract file
-        const QByteArray ex_data = extractData(index);
-        bool success = !ex_data.isNull();
-
-        if (success) {
-            res.data = ex_data;
-            res.modified = lastModified(index);
-        }
-
-        if (m_verbose)
-            std::cout << " " << (success ? "OK" : "FAILED") << std::endl;
+        // extract file data
+        res.data = extractData(index);
     }
 
     return res;
@@ -631,19 +604,23 @@ BufFile QMicroz::extractFileToBuf(const QString &fileName) const
     return extractToBuf(findIndex(fileName));
 }
 
-// Recommended in most cases if speed and memory requirements are not critical.
 QByteArray QMicroz::extractData(int index) const
 {
-    if (!isModeReading()) {
-        qWarning() << WARNING_WRONGMODE;
-        return QByteArray();
-    }
+    // Pointer to data
+    QByteArray extrRef = extractDataRef(index);
 
-    return tools::extract_to_buffer(static_cast<mz_zip_archive *>(m_archive), index);
+    if (extrRef.isNull())
+        return QByteArray();
+
+    // Copy data
+    QByteArray extrCopy(extrRef.constData(), extrRef.size());
+
+    // Clear extracted from the heap
+    delete extrRef.constData();
+
+    return extrCopy;
 }
 
-// This function is faster and consumes less resources than the previous one,
-// but requires an additional delete operation to avoid memory leaks. ( delete _array.constData(); )
 QByteArray QMicroz::extractDataRef(int index) const
 {
     if (!isModeReading()) {
@@ -651,8 +628,23 @@ QByteArray QMicroz::extractDataRef(int index) const
         return QByteArray();
     }
 
-    return tools::extract_to_buffer(static_cast<mz_zip_archive *>(m_archive),
-                                    index, false);
+    if (m_verbose)
+        std::cout << "Extracting: " << name(index).toStdString();
+
+    // extracting...
+    mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
+
+    size_t data_size = 0;
+    char *ch_data = (char*)mz_zip_reader_extract_to_heap(pZip, index, &data_size, 0);
+
+    // Pointer to the data in the QByteArray.
+    // The Data should be deleted on the caller side: delete ba.constData();
+    QByteArray extracted = ch_data ? QByteArray::fromRawData(ch_data, data_size) : QByteArray();
+
+    if (m_verbose)
+        std::cout << " " << (ch_data ? "OK" : "FAILED") << std::endl;
+
+    return extracted;
 }
 
 

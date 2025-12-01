@@ -18,9 +18,6 @@ static const QChar s_sep = u'/';
 // Returns info about the file contained in the archive
 mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index);
 
-// Extracts file data at the specified index into a buffer
-QByteArray extract_to_buffer(mz_zip_archive *pZip, int file_index, bool copy_data = true);
-
 // Concatenates path strings, checking for the presence of a separator
 QString joinPath(const QString &abs_path, const QString &rel_path);
 
