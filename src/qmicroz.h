@@ -182,22 +182,23 @@ public:
     /* Extracts a folder <index> and its contents to disk: <outputPath/contents> */
     bool extractFolder(int index, const QString &outputPath);
 
-    // Unzips all files into the RAM buffer { path : data }
+    // Unzips all files into the RAM buffer { "name/path" : data }
     BufList extractToBuf() const;
 
-    // Extracts the file with <index> to buffer
+    // Extracts a file with <index> into the buffer
     BufFile extractToBuf(int index) const;
 
-    // Finds the <fileName> and extracts to buffer, if any; slower than <index>
+    // Searches for a <fileName> and, if found, extracts it to the buffer; slower than <index>
     BufFile extractFileToBuf(const QString &fileName) const;
 
     /* Returns the extracted file data.
-     * QByteArray owns the copied data.
-     * Recommended in most cases if speed and memory requirements are not critical.
+     * The QByteArray owns the copied data.
+     * Recommended in most cases unless increased resource usage is critical.
      */
     QByteArray extractData(int index) const;
 
-    /* QByteArray holds only a pointer and does NOT own the data!
+    /* Returns the extracted file data.
+     * The QByteArray holds only a pointer and does NOT own the data!
      * To free memory: delete byteArray.constData();
      * Recommended for performance optimization or more flexible handling of the data pointer.
      */

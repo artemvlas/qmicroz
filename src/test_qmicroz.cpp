@@ -22,7 +22,9 @@ public:
 private slots:
     void test_compress_buf_file();
     void test_compress_buf_list();
-    void test_extract_to_buf();
+    void test_entryName();
+    void test_extractToBufList();
+    void test_extractToBufFile();
     void test_extract();
     void test_compress_file();
     void test_compress_folder();
@@ -114,19 +116,45 @@ void test_qmicroz::test_compress_buf_list()
     QVERIFY(QFileInfo::exists(custom_output));
 }
 
-void test_qmicroz::test_extract_to_buf()
+void test_qmicroz::test_entryName()
+{
+    QMicroz qmz(tmp_test_dir + "/test_compress_buf_list.zip", QMicroz::ModeRead);
+
+    QVERIFY(qmz);
+    QVERIFY(qmz.name(0) == "empty_folder/");
+    QVERIFY(qmz.name(1) == "file1.txt");
+    QVERIFY(qmz.name(-1).isEmpty());
+    QVERIFY(qmz.name(-2).isEmpty());
+    QVERIFY(qmz.name(93).isEmpty());
+    QVERIFY(!qmz.isFile(0));
+    QVERIFY(!qmz.isFolder(1));
+    QVERIFY(qmz.isFile(1));
+}
+
+void test_qmicroz::test_extractToBufList()
 {
     QMicroz qmz(tmp_test_dir + "/test_compress_buf_list.zip", QMicroz::ModeRead);
 
     QVERIFY(qmz);
 
     BufList list = qmz.extractToBuf();
-    QCOMPARE(list.size(), 7);
+    QCOMPARE(list.size(), 8);
     QVERIFY(list.value("file4.txt") == "Random file data 4");
-    QVERIFY(qmz.extractToBuf(0).name == "empty_folder/");
+    QVERIFY(list.contains("empty_folder/") && list.value("empty_folder/").isNull());
+}
+
+void test_qmicroz::test_extractToBufFile()
+{
+    QMicroz qmz(tmp_test_dir + "/test_compress_buf_list.zip", QMicroz::ModeRead);
+
+    QVERIFY(qmz);
 
     BufFile buf_file = qmz.extractFileToBuf("file5.txt");
-    QVERIFY(buf_file && buf_file.data == "Random file data 5");
+    QVERIFY(buf_file && (buf_file.data == "Random file data 5"));
+
+    BufFile buf_folder(qmz.extractToBuf(0));
+    QVERIFY(buf_folder.name == "empty_folder/");
+    QVERIFY(buf_folder.data.isNull());
 }
 
 void test_qmicroz::test_extract()

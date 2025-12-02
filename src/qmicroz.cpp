@@ -558,15 +558,9 @@ BufList QMicroz::extractToBuf() const
     }
 
     // extracting...
-    for (int it = 0; it < count(); ++it) {
-        const QString filename = name(it);
-
-        if (tools::isFileName(filename)) {
-            // extract file
-            const QByteArray data = extractData(it);
-            if (!data.isNull())
-                res[filename] = data;
-        }
+    ZipContents::const_iterator it = m_zip_entries.constBegin();
+    for (; it != m_zip_entries.constEnd(); ++it) {
+        res[it.key()] = extractData(it.value());
     }
 
     return res;
@@ -574,29 +568,20 @@ BufList QMicroz::extractToBuf() const
 
 BufFile QMicroz::extractToBuf(int index) const
 {
-    BufFile res;
-
     if (!m_archive) {
         qWarning() << WARNING_ZIPNOTSET;
-        return res;
+        return BufFile();
     }
 
-    if (index == -1)
-        return res;
+    const QString entryName = name(index);
+    if (entryName.isEmpty())
+        return BufFile();
 
-    const QString filename = name(index);
-    if (filename.isEmpty())
-        return res;
+    BufFile bufFile(entryName);
+    bufFile.data = extractData(index);
+    bufFile.modified = lastModified(index);
 
-    res.name = filename;
-    res.modified = lastModified(index);
-
-    if (tools::isFileName(filename)) {
-        // extract file data
-        res.data = extractData(index);
-    }
-
-    return res;
+    return bufFile;
 }
 
 BufFile QMicroz::extractFileToBuf(const QString &fileName) const
@@ -627,6 +612,15 @@ QByteArray QMicroz::extractDataRef(int index) const
         qWarning() << WARNING_WRONGMODE;
         return QByteArray();
     }
+
+    /* When extracting a folder, the <mz_zip_reader_extract_to_heap>
+     * returns an empty array, but not a null pointer.
+     * So for convenience, at the moment we return a null array for folders.
+     * QByteArray().isNull();   // returns true
+     * QByteArray("").isNull(); // returns false
+     */
+    if (isFolder(index))
+        return QByteArray();
 
     if (m_verbose)
         std::cout << "Extracting: " << name(index).toStdString();

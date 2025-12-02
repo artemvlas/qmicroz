@@ -9,6 +9,7 @@ QMicroz v0.6
   <index, name> --> <name, index>
 * Ability to set last modified date to folder entries.
 * Ability to extract the selected folder with its contents.
+* Extracting to the memory buffer no longer excludes folder entries.
 * Reduced verbosity (again).
 
 ---

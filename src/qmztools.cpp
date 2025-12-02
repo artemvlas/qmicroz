@@ -19,7 +19,6 @@ mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index)
         return file_stat;
     }
 
-    qWarning() << "QMicroz: Failed to get file info:" << file_index;
     return mz_zip_archive_file_stat();
 }
 
