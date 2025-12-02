@@ -11,6 +11,8 @@
 #define WARNING_WRONGPATH "QMicroz: Wrong path:"
 #define WARNING_NOINPUTDATA "QMicroz: No input data."
 
+#define PZIP static_cast<mz_zip_archive *>(m_archive)
+
 #include "qmicroz.h"
 #include "qmztools.h"
 #include <QDir>
@@ -162,7 +164,7 @@ void QMicroz::closeArchive()
     if (!m_archive)
         return;
 
-    mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
+    mz_zip_archive *pZip = PZIP;
 
     if (isModeWriting())
         mz_zip_writer_finalize_archive(pZip);
@@ -247,7 +249,7 @@ int QMicroz::count() const
     if (!m_archive)
         return 0;
 
-    return mz_zip_reader_get_num_files(static_cast<mz_zip_archive *>(m_archive));
+    return mz_zip_reader_get_num_files(PZIP);
 }
 
 int QMicroz::findIndex(const QString &fileName) const
@@ -285,7 +287,7 @@ bool QMicroz::isFile(int index) const
 
 QString QMicroz::name(int index) const
 {
-    return tools::za_file_stat(m_archive, index).m_filename;
+    return tools::za_file_stat(PZIP, index).m_filename;
 }
 
 qint64 QMicroz::sizeCompressed(int index) const
@@ -293,7 +295,7 @@ qint64 QMicroz::sizeCompressed(int index) const
     if (!m_archive)
         return 0;
 
-    return tools::za_file_stat(m_archive, index).m_comp_size;
+    return tools::za_file_stat(PZIP, index).m_comp_size;
 }
 
 qint64 QMicroz::sizeUncompressed(int index) const
@@ -301,7 +303,7 @@ qint64 QMicroz::sizeUncompressed(int index) const
     if (!m_archive)
         return 0;
 
-    return tools::za_file_stat(m_archive, index).m_uncomp_size;
+    return tools::za_file_stat(PZIP, index).m_uncomp_size;
 }
 
 QDateTime QMicroz::lastModified(int index) const
@@ -309,7 +311,7 @@ QDateTime QMicroz::lastModified(int index) const
     if (!m_archive)
         return QDateTime();
 
-    const qint64 sec = tools::za_file_stat(m_archive, index).m_time;
+    const qint64 sec = tools::za_file_stat(PZIP, index).m_time;
 
     return sec > 0 ? QDateTime::fromSecsSinceEpoch(sec) : QDateTime();
 }
@@ -337,7 +339,7 @@ bool QMicroz::addToZip(const QString &sourcePath, const QString &entryName)
      * <entry> its name or path inside the archive.
      */
     auto addFile = [this](const QString &source, const QString &entry) {
-        mz_zip_archive *pZip = static_cast<mz_zip_archive *>(this->m_archive);
+        mz_zip_archive *pZip = PZIP;
 
         std::function<bool()> func = [pZip, &source, &entry]() {
             return mz_zip_writer_add_file(pZip,                        // zip archive
@@ -398,7 +400,7 @@ bool QMicroz::addToZip(const BufFile &bufFile)
         return false;
     }
 
-    mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
+    mz_zip_archive *pZip = PZIP;
 
     std::function<bool()> func = [pZip, &bufFile]() {
         const QByteArray &data = tools::isFolderName(bufFile.name) ? QByteArray() : bufFile.data;
@@ -493,8 +495,7 @@ bool QMicroz::extractIndex(int index, const QString &outputPath)
             return false;
 
         // extracting...
-        mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
-        bool res = mz_zip_reader_extract_to_file(pZip, index, outputPath.toUtf8().constData(), 0);
+        bool res = mz_zip_reader_extract_to_file(PZIP, index, outputPath.toUtf8().constData(), 0);
 
         if (m_verbose)
             std::cout << " " << (res ? "OK" : "FAILED") << std::endl;
@@ -627,10 +628,8 @@ QByteArray QMicroz::extractDataRef(int index) const
         std::cout << "Extracting: " << name(index).toStdString();
 
     // extracting...
-    mz_zip_archive *pZip = static_cast<mz_zip_archive *>(m_archive);
-
     size_t data_size = 0;
-    char *ch_data = (char*)mz_zip_reader_extract_to_heap(pZip, index, &data_size, 0);
+    char *ch_data = (char*)mz_zip_reader_extract_to_heap(PZIP, index, &data_size, 0);
 
     // Pointer to the data in the QByteArray.
     // The Data should be deleted on the caller side: delete ba.constData();
