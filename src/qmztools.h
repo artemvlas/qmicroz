@@ -9,17 +9,23 @@
 #define QMZTOOLS_H
 
 #include <QString>
-#include <QDateTime>
 #include "miniz.h"
 
 namespace tools {
 static const QChar s_sep = u'/';
 
 // Returns info about the file contained in the archive
-mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index);
+inline mz_zip_archive_file_stat za_file_stat(void *pZip, int file_index)
+{
+    mz_zip_archive *p = static_cast<mz_zip_archive *>(pZip);
 
-// Concatenates path strings, checking for the presence of a separator
-QString joinPath(const QString &abs_path, const QString &rel_path);
+    mz_zip_archive_file_stat file_stat;
+    if (mz_zip_reader_file_stat(p, file_index, &file_stat)) {
+        return file_stat;
+    }
+
+    return mz_zip_archive_file_stat();
+}
 
 // Writing or Reading: MZ_ZIP_MODE_READING = 1, MZ_ZIP_MODE_WRITING = 2
 inline mz_zip_mode zipMode(void *pZip)

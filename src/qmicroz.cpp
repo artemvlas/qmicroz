@@ -15,6 +15,7 @@
 #include "qmztools.h"
 #include <QDir>
 #include <QDirIterator>
+#include <QStringBuilder>
 #include <QDebug>
 #include <iostream>
 
@@ -374,7 +375,7 @@ bool QMicroz::addToZip(const QString &sourcePath, const QString &entryName)
 
         while (it.hasNext()) {
             const QString fullPath = it.next();
-            const QString relPath = tools::joinPath(entryName, dir.relativeFilePath(fullPath));
+            const QString relPath = joinPath(entryName, dir.relativeFilePath(fullPath));
             const QFileInfo &fi = it.fileInfo();
 
             if ((fi.isFile() && addFile(fullPath, relPath))
@@ -450,7 +451,7 @@ bool QMicroz::extractIndex(int index)
     if (outputFolder().isEmpty())
         return false;
 
-    return extractIndex(index, tools::joinPath(outputFolder(), name(index)));
+    return extractIndex(index, joinPath(outputFolder(), name(index)));
 }
 
 bool QMicroz::extractIndex(int index, const QString &outputPath)
@@ -523,7 +524,7 @@ bool QMicroz::extractFolder(int index)
     if (outputFolder().isEmpty())
         return false;
 
-    return extractFolder(index, tools::joinPath(outputFolder(), name(index)));
+    return extractFolder(index, joinPath(outputFolder(), name(index)));
 }
 
 bool QMicroz::extractFolder(int index, const QString &outputPath)
@@ -540,7 +541,7 @@ bool QMicroz::extractFolder(int index, const QString &outputPath)
             // e.g. "folder_entry/file" --> "file"
             QString relPath = it.key().mid(folder_entry.size());
 
-            if (extractIndex(it.value(), tools::joinPath(outputPath, relPath)))
+            if (extractIndex(it.value(), joinPath(outputPath, relPath)))
                 extracted = true;
         }
     }
@@ -671,7 +672,7 @@ bool QMicroz::compress(const QString &path)
 
     const QString base_name = fi.isFile() ? fi.completeBaseName() : fi.fileName();
     const QString zip_name = base_name + s_zip_ext;
-    const QString zip_path = tools::joinPath(fi.absolutePath(), zip_name);
+    const QString zip_path = joinPath(fi.absolutePath(), zip_name);
 
     return compress(QStringList(path), zip_path);
 }
@@ -683,7 +684,7 @@ bool QMicroz::compress(const QStringList &paths)
 
     const QString root_folder = QFileInfo(paths.first()).absolutePath();
     const QString zip_name = QFileInfo(root_folder).fileName() + s_zip_ext;
-    const QString zip_path = tools::joinPath(root_folder, zip_name);
+    const QString zip_path = joinPath(root_folder, zip_name);
 
     return compress(paths, zip_path);
 }
@@ -775,6 +776,23 @@ bool QMicroz::isZipFile(const QString &filePath)
     return file.open(QFile::ReadOnly) && isArchive(file.read(2));
 }
 
+QString QMicroz::joinPath(const QString &abs_path, const QString &rel_path)
+{
+    auto isSep = [] (QChar ch) { return ch == '/' || ch == '\\'; };
+
+    const bool s1Ends = !abs_path.isEmpty() && isSep(abs_path.back());
+    const bool s2Starts = !rel_path.isEmpty() && isSep(rel_path.front());
+
+    if (s1Ends && s2Starts) {
+        QStringView chopped = QStringView(abs_path).left(abs_path.size() - 1);
+        return chopped % rel_path;
+    }
+
+    if (s1Ends || s2Starts)
+        return abs_path + rel_path;
+
+    return abs_path % tools::s_sep % rel_path;
+}
 
 /*** OBSOLETE ***/
 bool QMicroz::compress_here(const QString &path)

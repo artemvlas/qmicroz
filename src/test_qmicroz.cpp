@@ -105,8 +105,7 @@ void test_qmicroz::test_compress_buf_list()
     QMicroz qmz(output_file);
 
     QVERIFY(qmz);
-    QVERIFY(qmz.isFolder(0));
-    QVERIFY(!qmz.isFile(0));
+
     QVERIFY(qmz.isFolder(qmz.findIndex("empty_folder/")));
     QVERIFY(qmz.isFile(qmz.findIndex("file4.txt")));
     QVERIFY(qmz.isFile(qmz.findIndex("folder2/file5.txt")));
@@ -127,6 +126,7 @@ void test_qmicroz::test_entryName()
     QVERIFY(qmz.name(-2).isEmpty());
     QVERIFY(qmz.name(93).isEmpty());
     QVERIFY(!qmz.isFile(0));
+    QVERIFY(qmz.isFolder(0));
     QVERIFY(!qmz.isFolder(1));
     QVERIFY(qmz.isFile(1));
 }

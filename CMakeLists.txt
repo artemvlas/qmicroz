@@ -25,7 +25,6 @@ add_library(qmicroz
   src/qmicroz.h
   src/qmicroz.cpp
   src/qmztools.h
-  src/qmztools.cpp
   miniz/miniz.h
   miniz/miniz.c
 )

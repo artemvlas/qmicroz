@@ -285,6 +285,9 @@ private:
      */
     bool addEntry(const QString &entryName, std::function<bool()> addFunc);
 
+    // Concatenates path strings, ensuring the separator is not duplicated
+    static QString joinPath(const QString &abs_path, const QString &rel_path);
+
     // The void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;
 
