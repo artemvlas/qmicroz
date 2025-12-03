@@ -3,13 +3,19 @@
  * under the MIT License.
  * https://github.com/artemvlas/qmicroz
  *
- * Copyright (c) 2024 Artem Vlasenko
+ * Copyright (c) 2024 - present Artem Vlasenko
+ * artemvlas (at) proton (dot) me
 */
 
 #define WARNING_ZIPNOTSET "QMicroz: Zip archive is not set."
 #define WARNING_WRONGMODE "QMicroz: Wrong archive mode."
 #define WARNING_WRONGPATH "QMicroz: Wrong path:"
 #define WARNING_NOINPUTDATA "QMicroz: No input data."
+
+#define CH_SPACE ' '
+#define RESULT_OK "OK"
+#define RESULT_EXISTS "EXISTS"
+#define RESULT_FAILED "FAILED"
 
 #define PZIP static_cast<mz_zip_archive *>(m_archive)
 
@@ -209,18 +215,18 @@ bool QMicroz::addEntry(const QString &entryName, std::function<bool()> addFunc)
 
     if (m_zip_entries.contains(entryName)) {
         if (m_verbose)
-            std::cout << " " << "EXISTS" << std::endl;
+            std::cout << CH_SPACE << RESULT_EXISTS << std::endl;
         return false;
     }
 
     if (!addFunc()) {
         if (m_verbose)
-            std::cout << " " << "FAILED" << std::endl;
+            std::cout << CH_SPACE << RESULT_FAILED << std::endl;
         return false;
     }
 
     if (m_verbose)
-        std::cout << " " << "OK" << std::endl;
+        std::cout << CH_SPACE << RESULT_OK << std::endl;
 
     m_zip_entries[entryName] = m_zip_entries.size();
     return true;
@@ -508,7 +514,7 @@ bool QMicroz::extractIndex(int index, const QString &outputPath)
         bool res = mz_zip_reader_extract_to_file(PZIP, index, outputPath.toUtf8().constData(), 0);
 
         if (m_verbose)
-            std::cout << " " << (res ? "OK" : "FAILED") << std::endl;
+            std::cout << CH_SPACE << (res ? RESULT_OK : RESULT_FAILED) << std::endl;
 
         if (!res)
             qWarning() << "QMicroz: Failed to extract file:" << index << filename;
@@ -646,7 +652,7 @@ QByteArray QMicroz::extractDataRef(int index) const
     QByteArray extracted = ch_data ? QByteArray::fromRawData(ch_data, data_size) : QByteArray();
 
     if (m_verbose)
-        std::cout << " " << (ch_data ? "OK" : "FAILED") << std::endl;
+        std::cout << CH_SPACE << (ch_data ? RESULT_OK : RESULT_FAILED) << std::endl;
 
     return extracted;
 }

@@ -3,7 +3,8 @@
  * under the MIT License.
  * https://github.com/artemvlas/qmicroz
  *
- * Copyright (c) 2024 Artem Vlasenko
+ * Copyright (c) 2024 - present Artem Vlasenko
+ * artemvlas (at) proton (dot) me
 */
 
 #ifndef QMICROZ_H
