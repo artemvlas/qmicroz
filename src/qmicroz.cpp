@@ -47,12 +47,12 @@ QMicroz::~QMicroz()
 
 bool QMicroz::isModeReading() const
 {
-    return tools::zipMode(m_archive) == mz_zip_mode::MZ_ZIP_MODE_READING;
+    return m_archive && (PZIP->m_zip_mode == mz_zip_mode::MZ_ZIP_MODE_READING);
 }
 
 bool QMicroz::isModeWriting() const
 {
-    return tools::zipMode(m_archive) == mz_zip_mode::MZ_ZIP_MODE_WRITING;
+    return m_archive && (PZIP->m_zip_mode == mz_zip_mode::MZ_ZIP_MODE_WRITING);
 }
 
 void QMicroz::setVerbose(bool enable)
@@ -287,31 +287,38 @@ bool QMicroz::isFile(int index) const
 
 QString QMicroz::name(int index) const
 {
-    return tools::za_file_stat(PZIP, index).m_filename;
+    mz_zip_archive_file_stat file_stat;
+    if (mz_zip_reader_file_stat(PZIP, index, &file_stat))
+        return file_stat.m_filename;
+
+    return QString();
 }
 
 qint64 QMicroz::sizeCompressed(int index) const
 {
-    if (!m_archive)
-        return 0;
+    mz_zip_archive_file_stat file_stat;
+    if (mz_zip_reader_file_stat(PZIP, index, &file_stat))
+        return file_stat.m_comp_size;
 
-    return tools::za_file_stat(PZIP, index).m_comp_size;
+    return 0;
 }
 
 qint64 QMicroz::sizeUncompressed(int index) const
 {
-    if (!m_archive)
-        return 0;
+    mz_zip_archive_file_stat file_stat;
+    if (mz_zip_reader_file_stat(PZIP, index, &file_stat))
+        return file_stat.m_uncomp_size;
 
-    return tools::za_file_stat(PZIP, index).m_uncomp_size;
+    return 0;
 }
 
 QDateTime QMicroz::lastModified(int index) const
 {
-    if (!m_archive)
-        return QDateTime();
+    qint64 sec = 0;
 
-    const qint64 sec = tools::za_file_stat(PZIP, index).m_time;
+    mz_zip_archive_file_stat file_stat;
+    if (mz_zip_reader_file_stat(PZIP, index, &file_stat))
+        sec = file_stat.m_time;
 
     return sec > 0 ? QDateTime::fromSecsSinceEpoch(sec) : QDateTime();
 }

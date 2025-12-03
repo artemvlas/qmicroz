@@ -14,24 +14,6 @@
 namespace tools {
 static const QChar s_sep = u'/';
 
-// Returns info about the file contained in the archive
-inline mz_zip_archive_file_stat za_file_stat(mz_zip_archive *pZip, int file_index)
-{
-    mz_zip_archive_file_stat file_stat;
-    if (mz_zip_reader_file_stat(pZip, file_index, &file_stat)) {
-        return file_stat;
-    }
-
-    return mz_zip_archive_file_stat();
-}
-
-// Writing or Reading: MZ_ZIP_MODE_READING = 1, MZ_ZIP_MODE_WRITING = 2
-inline mz_zip_mode zipMode(void *pZip)
-{
-    mz_zip_archive *p = static_cast<mz_zip_archive *>(pZip);
-    return p ? p->m_zip_mode : MZ_ZIP_MODE_INVALID;
-}
-
 // Returns "no compression" for micro files, for others by default
 inline mz_uint compressLevel(qint64 data_size)
 {
