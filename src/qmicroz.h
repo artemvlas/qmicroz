@@ -288,6 +288,15 @@ private:
     // Concatenates path strings, ensuring the separator is not duplicated
     static QString joinPath(const QString &abs_path, const QString &rel_path);
 
+    // Checks whether the <name> is a sub-folder inside zip
+    static inline bool isFolderName(const QString &name) { return name.endsWith(s_sep); }
+
+    // Checks whether the <name> is a file inside zip
+    static inline bool isFileName(const QString &name) { return !name.isEmpty() && !name.endsWith(s_sep); }
+
+    // Appends '/' if not any
+    static inline QString toFolderName(const QString &name) { return name.endsWith(s_sep) ? name : name + s_sep; }
+
     // The void pointer is used to allow the miniz header not to be included
     void *m_archive = nullptr;
 
@@ -305,6 +314,7 @@ private:
 
     // Literal ".zip"
     static const QString s_zip_ext;
+    static constexpr QChar s_sep = u'/';
 
 }; // class QMicroz
 

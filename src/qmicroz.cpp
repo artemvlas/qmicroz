@@ -13,11 +13,10 @@
 
 #define PZIP static_cast<mz_zip_archive *>(m_archive)
 
-// Returns "no compression" for micro files (< 40 bytes), for others by default
+// Returns "no compression" for micro files (< 41 bytes), for others by default
 #define COMPLEVEL(x) ((x) > 40 ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION)
 
 #include "qmicroz.h"
-#include "qmztools.h"
 #include "miniz.h"
 #include <QDir>
 #include <QDirIterator>
@@ -263,11 +262,11 @@ int QMicroz::findIndex(const QString &fileName) const
         return m_zip_entries.value(fileName);
 
     // deep search, matching only the name, e.g. "file.txt" for "folder/file.txt"
-    if (!fileName.contains(tools::s_sep)) {
+    if (!fileName.contains(s_sep)) {
         ZipContents::const_iterator it;
 
         for (it = m_zip_entries.constBegin(); it != m_zip_entries.constEnd(); ++it) {
-            if (tools::isFileName(it.key())
+            if (isFileName(it.key())
                 && fileName == QFileInfo(it.key()).fileName())
             {
                 return it.value();
@@ -281,12 +280,12 @@ int QMicroz::findIndex(const QString &fileName) const
 
 bool QMicroz::isFolder(int index) const
 {
-    return tools::isFolderName(name(index));
+    return isFolderName(name(index));
 }
 
 bool QMicroz::isFile(int index) const
 {
-    return tools::isFileName(name(index));
+    return isFileName(name(index));
 }
 
 QString QMicroz::name(int index) const
@@ -367,7 +366,7 @@ bool QMicroz::addToZip(const QString &sourcePath, const QString &entryName)
      * <modified> its last modified date; invalid QDateTime() to set current.
      */
     auto addFolder = [this](const QString &entry, const QDateTime &modified) {
-        BufFile bf(tools::toFolderName(entry), modified);
+        BufFile bf(toFolderName(entry), modified);
         return this->addToZip(bf);
     }; // lambda addFolder -> bool
 
@@ -414,7 +413,7 @@ bool QMicroz::addToZip(const BufFile &bufFile)
     mz_zip_archive *pZip = PZIP;
 
     std::function<bool()> func = [pZip, &bufFile]() {
-        const QByteArray &data = tools::isFolderName(bufFile.name) ? QByteArray() : bufFile.data;
+        const QByteArray &data = isFolderName(bufFile.name) ? QByteArray() : bufFile.data;
         time_t modified = bufFile.modified.isValid() ? bufFile.modified.toSecsSinceEpoch() : 0;
 
         return mz_zip_writer_add_mem_ex_v2(pZip,
@@ -495,7 +494,7 @@ bool QMicroz::extractIndex(int index, const QString &outputPath)
         return false;
     };
 
-    if (tools::isFileName(filename)) {
+    if (isFileName(filename)) {
         if (m_verbose)
             std::cout << "Extracting: " << filename.toStdString(); // or "Extracting:" << (index + 1) << '/' << count() << filename;
 
@@ -801,7 +800,7 @@ QString QMicroz::joinPath(const QString &abs_path, const QString &rel_path)
     if (s1Ends || s2Starts)
         return abs_path + rel_path;
 
-    return abs_path % tools::s_sep % rel_path;
+    return abs_path % s_sep % rel_path;
 }
 
 /*** OBSOLETE ***/

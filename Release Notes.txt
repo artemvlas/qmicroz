@@ -1,7 +1,7 @@
 QMicroz v0.6
 * Redesigned architecture. Significantly simplified code base.
   The main class now has functionality for more flexible zippping at a lower level.
-  File qmztools.cpp deleted. Many functions have been rewritten and combined.
+  Files qmztools.h and qmztools.cpp deleted. Many functions have been rewritten and combined.
 * Ability to zip files and folders with an arbitrary entry name.
 * Ability to extract individual items to a custom path.
 * Ability to concise code using << operator.

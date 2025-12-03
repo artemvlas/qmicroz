@@ -24,7 +24,6 @@ include_directories("src" "miniz")
 add_library(qmicroz
   src/qmicroz.h
   src/qmicroz.cpp
-  src/qmztools.h
   miniz/miniz.h
   miniz/miniz.c
 )
