@@ -13,8 +13,12 @@
 
 #define PZIP static_cast<mz_zip_archive *>(m_archive)
 
+// Returns "no compression" for micro files (< 40 bytes), for others by default
+#define COMPLEVEL(x) ((x) > 40 ? MZ_DEFAULT_COMPRESSION : MZ_NO_COMPRESSION)
+
 #include "qmicroz.h"
 #include "qmztools.h"
+#include "miniz.h"
 #include <QDir>
 #include <QDirIterator>
 #include <QStringBuilder>
@@ -353,7 +357,7 @@ bool QMicroz::addToZip(const QString &sourcePath, const QString &entryName)
                                           entry.toUtf8().constData(),  // entry name/path inside the zip
                                           source.toUtf8().constData(), // filesystem path
                                           NULL, 0,
-                                          tools::compressLevel(QFileInfo(source).size()));
+                                          COMPLEVEL(QFileInfo(source).size()));
         };
 
         return this->addEntry(entry, func);
@@ -418,7 +422,7 @@ bool QMicroz::addToZip(const BufFile &bufFile)
                                            data.constData(),                    // file data
                                            data.size(),                         // file size
                                            NULL, 0,
-                                           tools::compressLevel(data.size()),
+                                           COMPLEVEL(data.size()),
                                            0, 0,
                                            modified > 0 ? &modified : NULL,     // last modified, NULL to set current time
                                            NULL, 0, NULL, 0);
