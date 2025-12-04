@@ -255,9 +255,6 @@ const ZipContents& QMicroz::contents() const
 
 int QMicroz::count() const
 {
-    if (!m_archive)
-        return 0;
-
     return mz_zip_reader_get_num_files(PZIP);
 }
 

@@ -35,6 +35,7 @@ private slots:
     void test_setZipWriting();
     void test_nestedFoldersCreation();
     void test_extractFolder();
+    void test_noArchiveSet();
 
 private:
     const QString tmp_test_dir = QDir::currentPath() + "/tmp_test_files";
@@ -395,6 +396,42 @@ void test_qmicroz::test_extractFolder()
     QVERIFY(!QFileInfo::exists(tmp_test_dir + "/file111.txt"));
     QVERIFY(!QFileInfo::exists(tmp_test_dir + "/folder444"));
     QVERIFY(!QFileInfo::exists(tmp_test_dir + "/file111-2.txt"));
+}
+
+void test_qmicroz::test_noArchiveSet()
+{
+    QMicroz qmz;
+
+    QVERIFY(!qmz);
+    QVERIFY(qmz.contents().isEmpty());
+    QVERIFY(qmz.count() == 0);
+    QVERIFY(qmz.sizeCompressed(0) == 0);
+    QVERIFY(qmz.sizeCompressed(1) == 0);
+    QVERIFY(qmz.sizeUncompressed() == 0);
+    QVERIFY(qmz.sizeUncompressed(-1) == 0);
+    QVERIFY(!qmz.lastModified(0).isValid());
+    QVERIFY(qmz.name(0).isEmpty());
+    QVERIFY(qmz.name(11).isEmpty());
+    QVERIFY(!qmz.isModeReading());
+    QVERIFY(!qmz.isModeWriting());
+    QVERIFY(qmz.zipFilePath().isNull());
+
+    /* disabled due to warnings; uncomment to test despite this
+    QString exists = tmp_test_dir + "/folder111";
+    QVERIFY(QFileInfo::exists(exists));
+    QVERIFY(!qmz.addToZip(exists));
+    QVERIFY(!qmz.addToZip(BufFile("file.txt", "some data")));
+    QVERIFY(!qmz.addToZip(BufFile("folder/")));
+    QVERIFY(!qmz.addToZip(BufFile("file.txt", "some data")));
+
+    QVERIFY(!qmz.extractAll());
+    QVERIFY(!qmz.extractIndex(0));
+    QVERIFY(!qmz.extractIndex(1));
+    QVERIFY(!qmz.extractIndex(-1));
+    QVERIFY(qmz.extractData(0).isNull());
+
+    QVERIFY(qmz.outputFolder().isNull());
+    */
 }
 
 QTEST_APPLESS_MAIN(test_qmicroz)
