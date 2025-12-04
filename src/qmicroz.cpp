@@ -451,17 +451,14 @@ bool QMicroz::addToZip(const BufList &bufList)
 
 bool QMicroz::extractAll()
 {
-    if (count() == 0) {
-        qWarning() << "QMicroz: No files to extract.";
-        return false;
-    }
+    int num = 0;
 
     for (int i = 0; i < count(); ++i) {
-        if (!extractIndex(i))
-            return false;
+        if (extractIndex(i))
+            ++num;
     }
 
-    return true;
+    return num > 0 && num == count();
 }
 
 bool QMicroz::extractIndex(int index)

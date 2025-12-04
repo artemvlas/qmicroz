@@ -11,6 +11,7 @@ QMicroz v0.6
 * Ability to set last modified date to folder entries.
 * Ability to extract the selected folder with its contents.
 * Extracting to the memory buffer no longer excludes folder entries.
+* extractAll() now continues to extract the rest of the content despite the individual item fail.
 * Reduced verbosity (again).
 
 ---
