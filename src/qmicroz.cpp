@@ -339,12 +339,12 @@ bool QMicroz::addToZip(const QString &sourcePath)
 
 bool QMicroz::addToZip(const QString &sourcePath, const QString &entryName)
 {
-    if (!m_archive || entryName.isEmpty() || !QFileInfo::exists(sourcePath)) {
+    if (!isModeWriting()) {
+        qWarning() << WARNING_WRONGMODE;
         return false;
     }
 
-    if (!isModeWriting()) {
-        qWarning() << WARNING_WRONGMODE;
+    if (entryName.isEmpty() || !QFileInfo::exists(sourcePath)) {
         return false;
     }
 
@@ -435,15 +435,15 @@ bool QMicroz::addToZip(const BufFile &bufFile)
 
 bool QMicroz::addToZip(const BufList &bufList)
 {
+    bool added = false;
     BufList::const_iterator it;
+
     for (it = bufList.constBegin(); it != bufList.constEnd(); ++it) {
         if (addToZip(BufFile(it.key(), it.value())))
-            m_zip_entries[it.key()] = m_zip_entries.size();
-        else
-            return false;
+            added = true;
     }
 
-    return true;
+    return added;
 }
 
 bool QMicroz::extractAll()
@@ -468,18 +468,13 @@ bool QMicroz::extractIndex(int index)
 
 bool QMicroz::extractIndex(int index, const QString &outputPath)
 {
-    if (index == -1)
-        return false;
-
-    if (!m_archive) {
-        qWarning() << WARNING_ZIPNOTSET;
-        return false;
-    }
-
     if (!isModeReading()) {
         qWarning() << WARNING_WRONGMODE;
         return false;
     }
+
+    if (index == -1)
+        return false;
 
     // the name is also a path inside the archive
     const QString filename = name(index);
@@ -562,12 +557,12 @@ bool QMicroz::extractFolder(int index, const QString &outputPath)
 
 BufList QMicroz::extractToBuf() const
 {
-    BufList res;
-
-    if (!m_archive) {
-        qWarning() << WARNING_ZIPNOTSET;
-        return res;
+    if (!isModeReading()) {
+        qWarning() << WARNING_WRONGMODE;
+        return BufList();
     }
+
+    BufList res;
 
     // extracting...
     ZipContents::const_iterator it = m_zip_entries.constBegin();
@@ -580,8 +575,8 @@ BufList QMicroz::extractToBuf() const
 
 BufFile QMicroz::extractToBuf(int index) const
 {
-    if (!m_archive) {
-        qWarning() << WARNING_ZIPNOTSET;
+    if (!isModeReading()) {
+        qWarning() << WARNING_WRONGMODE;
         return BufFile();
     }
 
