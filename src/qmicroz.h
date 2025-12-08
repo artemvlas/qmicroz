@@ -56,10 +56,10 @@ public:
     // To avoid ambiguity...
     explicit QMicroz(const char *zipPath);
 
-    // Sets <zip_path> and opens a new archive for Reading or Writing same as <setZipFile>
+    // Sets the <zipPath> and opens a new archive for Reading or Writing, just like the <setZipFile> func.
     explicit QMicroz(const QString &zipPath, Mode mode = ModeAuto);
 
-    // existing zip archive buffered in memory
+    // Opens the <bufferedZip> archive for Reading, just like the <setZipBuffer> func.
     explicit QMicroz(const QByteArray &bufferedZip);
 
     /* Sets and opens the zip for the current object.
@@ -114,13 +114,13 @@ public:
     // Returns the number of items in the archive
     int count() const;
 
-    // Returns index of the <fileName> entry, -1 if not found
+    // Returns the index of the <fileName> entry, -1 if not found
     int findIndex(const QString &fileName) const;
 
-    // Whether the specified index belongs to the folder
+    // Whether the index belongs to the folder entry
     bool isFolder(int index) const;
 
-    // ... to the file
+    // ... to the file entry
     bool isFile(int index) const;
 
     // Returns the name/path corresponding to the index
@@ -183,7 +183,7 @@ public:
     /* Extracts a folder <index> and its contents to disk: <outputPath/contents> */
     bool extractFolder(int index, const QString &outputPath);
 
-    // Unzips all files into the RAM buffer { "name/path" : data }
+    // Extracts all files into the RAM buffer { "name/path" : data }
     BufList extractToBuf() const;
 
     // Extracts a file with <index> into the buffer
@@ -228,7 +228,7 @@ public:
     // Creates an archive with files from the listed paths and data
     static bool compress(const BufList &buf_list, const QString &zip_path);
 
-    // Creates an archive containing a single file based on <buf_file> name and data
+    // Creates an archive containing a single file based on <buf_file>
     static bool compress(const BufFile &buf_file, const QString &zip_path);
 
     /* Creates an archive <zip_path> containing a file (<file_name>, <file_data>)
@@ -289,10 +289,10 @@ private:
     // Concatenates path strings, ensuring the separator is not duplicated
     static QString joinPath(const QString &abs_path, const QString &rel_path);
 
-    // Checks whether the <name> is a sub-folder inside zip
+    // Checks whether the <name> is a folder entry name (ends with '/')
     static inline bool isFolderName(const QString &name) { return name.endsWith(s_sep); }
 
-    // Checks whether the <name> is a file inside zip
+    // Checks whether the <name> is a file entry name
     static inline bool isFileName(const QString &name) { return !name.isEmpty() && !name.endsWith(s_sep); }
 
     // Appends '/' if not any
@@ -310,7 +310,7 @@ private:
     // Folder to place the extracted files
     QString m_output_folder;
 
-    // Holds a list of current zip contents { "entry name/path" : index }
+    // Holds a list of the current archive contents { "entry name/path" : index }
     ZipContents m_zip_entries;
 
     // Literal ".zip"

@@ -331,9 +331,6 @@ QDateTime QMicroz::lastModified(int index) const
 
 bool QMicroz::addToZip(const QString &sourcePath)
 {
-    if (!QFileInfo::exists(sourcePath))
-        return false;
-
     return addToZip(sourcePath, QFileInfo(sourcePath).fileName());
 }
 
@@ -491,7 +488,7 @@ bool QMicroz::extractIndex(int index, const QString &outputPath)
 
     if (isFileName(filename)) {
         if (m_verbose)
-            std::cout << "Extracting: " << filename.toStdString(); // or "Extracting:" << (index + 1) << '/' << count() << filename;
+            std::cout << "Extracting: " << filename.toStdString();
 
         const QString parent_folder = QFileInfo(outputPath).absolutePath();
 
@@ -712,7 +709,7 @@ bool QMicroz::compress(const QStringList &paths, const QString &zip_path)
 
     /* At the moment we consider the parent folder of the first item in the list as the relative Root.
      * Archive entries are created relative to this root.
-     * Paths from the list that do not have a common root are placed in the root of the archive.
+     * Paths from the list which do not have a common root are placed at the archive's root.
      *
      * TODO: a smarter function for parsing paths and building internal entries based on multiple roots is needed.
      */

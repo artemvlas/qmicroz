@@ -98,18 +98,28 @@ void test_qmicroz::test_compress_buf_list()
         { "folder2/file6.txt", "Random file data 6" },
     };
 
+    BufList buf_list2 = {
+        { "file4.txt", QByteArray() },         // exists
+        { "folder2/file5.txt", QByteArray() }, // exists
+        { "file from List2.txt", "Random file data for file_from_list2" }, // new one
+        { "empty_folder/", QByteArray() }      // exists
+    };
+
     QString output_file = tmp_test_dir + "/test_compress_buf_list.zip";
-    QMicroz::compress(buf_list, output_file);
+    QMicroz qmz(output_file, QMicroz::ModeWrite);
+
+    QVERIFY(qmz.addToZip(buf_list));
+    QVERIFY(!qmz.addToZip(buf_list)); // only duplicates, nothing to add
+    QVERIFY(qmz.addToZip(buf_list2));
+    qmz.closeArchive();
 
     QVERIFY(QMicroz::isZipFile(output_file));
-
-    QMicroz qmz(output_file);
-
+    QVERIFY(qmz.setZipFile(output_file, QMicroz::ModeRead));
     QVERIFY(qmz);
-
     QVERIFY(qmz.isFolder(qmz.findIndex("empty_folder/")));
     QVERIFY(qmz.isFile(qmz.findIndex("file4.txt")));
     QVERIFY(qmz.isFile(qmz.findIndex("folder2/file5.txt")));
+    QVERIFY(qmz.isFile(qmz.findIndex("file from List2.txt")));
 
     QString custom_output = tmp_test_dir + "/custom_folder/file111.txt";
     QVERIFY(qmz.extractFile("file1.txt", custom_output));
@@ -139,8 +149,9 @@ void test_qmicroz::test_extractToBufList()
     QVERIFY(qmz);
 
     BufList list = qmz.extractToBuf();
-    QCOMPARE(list.size(), 8);
-    QVERIFY(list.value("file4.txt") == "Random file data 4");
+    QCOMPARE(list.size(), 9);
+    QCOMPARE(list.value("file4.txt"), "Random file data 4");
+    QCOMPARE(list.value("file from List2.txt"), "Random file data for file_from_list2");
     QVERIFY(list.contains("empty_folder/") && list.value("empty_folder/").isNull());
 }
 
