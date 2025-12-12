@@ -355,7 +355,8 @@ bool QMicroz::addToZip(const QString &sourcePath, const QString &entryName)
         std::function<bool()> func = [pZip, &source, &entry]() {
             QByteArray entryBytes = entry.toUtf8();
             QByteArray sourceBytes = source.toUtf8();
-            return mz_zip_writer_add_file(pZip,                        // zip archive
+
+            return mz_zip_writer_add_file(pZip,                    // zip archive
                                           entryBytes.constData(),  // entry name/path inside the zip
                                           sourceBytes.constData(), // filesystem path
                                           NULL, 0,
@@ -416,10 +417,10 @@ bool QMicroz::addToZip(const BufFile &bufFile)
     mz_zip_archive *pZip = PZIP;
 
     std::function<bool()> func = [pZip, &bufFile]() {
+        QByteArray entryNameBytes = bufFile.name.toUtf8();
         const QByteArray &data = isFolderName(bufFile.name) ? QByteArray() : bufFile.data;
         time_t modified = bufFile.modified.isValid() ? bufFile.modified.toSecsSinceEpoch() : 0;
 
-        QByteArray entryNameBytes = bufFile.name.toUtf8();
         return mz_zip_writer_add_mem_ex_v2(pZip,
                                            entryNameBytes.constData(),          // entry name/path
                                            data.constData(),                    // file data
