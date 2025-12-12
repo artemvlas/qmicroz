@@ -3,7 +3,7 @@
 #############
 cmake_minimum_required(VERSION 3.16)
 
-project(qmicroz VERSION 0.6)
+project(qmicroz VERSION 0.7)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -11,7 +11,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(WITH_TESTS "Enable building of unit tests" ON)
+option(BUILD_TESTS "Enable building of unit tests" ON)
+option(INSTALL_FILES "Enable installation" ON)
 
 # find Qt packages
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
@@ -40,7 +41,7 @@ else()
 endif()
 
 # unit test
-if(WITH_TESTS)
+if(BUILD_TESTS)
   enable_testing()
   find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Test)
   find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Test)
@@ -49,10 +50,10 @@ if(WITH_TESTS)
   add_test(NAME test_qmicroz COMMAND test_qmicroz)
 
   target_link_libraries(test_qmicroz PRIVATE Qt${QT_VERSION_MAJOR}::Test qmicroz)
-endif(WITH_TESTS)
+endif(BUILD_TESTS)
 
 # install [/usr/lib/libqmicroz.so, /usr/include/qmicroz.h]
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(INSTALL_FILES AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(CMAKE_INSTALL_PREFIX "/usr")
 
     include(GNUInstallDirs)

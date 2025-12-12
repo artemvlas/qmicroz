@@ -1,3 +1,7 @@
+QMicroz v0.7
+* Added INSTALL_FILES option to provide the ability to disable copying of this library files.
+
+---
 QMicroz v0.6
 * Redesigned architecture. Significantly simplified code base.
   The main class now has functionality for more flexible zippping at a lower level.
