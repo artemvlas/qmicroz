@@ -101,7 +101,8 @@ bool QMicroz::setZipFile(const QString &zipPath, Mode mode)
 
     // create and open a zip archive
     mz_zip_archive *pZip = new mz_zip_archive();
-    const char* zapath = zipPath.toUtf8().constData();
+    QByteArray zipPathBytes = zipPath.toUtf8();
+    const char* zapath = zipPathBytes.constData();
 
     // Here the <zamode> can be either ModeRead or ModeWrite
     bool success = (zamode == ModeWrite) ? mz_zip_writer_init_file(pZip, zapath, 0)
@@ -352,9 +353,11 @@ bool QMicroz::addToZip(const QString &sourcePath, const QString &entryName)
         mz_zip_archive *pZip = PZIP;
 
         std::function<bool()> func = [pZip, &source, &entry]() {
+            QByteArray entryBytes = entry.toUtf8();
+            QByteArray sourceBytes = source.toUtf8();
             return mz_zip_writer_add_file(pZip,                        // zip archive
-                                          entry.toUtf8().constData(),  // entry name/path inside the zip
-                                          source.toUtf8().constData(), // filesystem path
+                                          entryBytes.constData(),  // entry name/path inside the zip
+                                          sourceBytes.constData(), // filesystem path
                                           NULL, 0,
                                           COMPLEVEL(QFileInfo(source).size()));
         };
@@ -416,8 +419,9 @@ bool QMicroz::addToZip(const BufFile &bufFile)
         const QByteArray &data = isFolderName(bufFile.name) ? QByteArray() : bufFile.data;
         time_t modified = bufFile.modified.isValid() ? bufFile.modified.toSecsSinceEpoch() : 0;
 
+        QByteArray entryNameBytes = bufFile.name.toUtf8();
         return mz_zip_writer_add_mem_ex_v2(pZip,
-                                           bufFile.name.toUtf8().constData(),   // entry name/path
+                                           entryNameBytes.constData(),          // entry name/path
                                            data.constData(),                    // file data
                                            data.size(),                         // file size
                                            NULL, 0,
@@ -497,7 +501,8 @@ bool QMicroz::extractIndex(int index, const QString &outputPath)
             return false;
 
         // extracting...
-        bool res = mz_zip_reader_extract_to_file(PZIP, index, outputPath.toUtf8().constData(), 0);
+        QByteArray outputPathBytes = outputPath.toUtf8();
+        bool res = mz_zip_reader_extract_to_file(PZIP, index, outputPathBytes.constData(), 0);
 
         if (m_verbose)
             std::cout << CH_SPACE << (res ? RESULT_OK : RESULT_FAILED) << std::endl;
