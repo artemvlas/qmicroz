@@ -200,7 +200,7 @@ public:
 
     /* Returns the extracted file data.
      * The QByteArray holds only a pointer and does NOT own the data!
-     * To free memory: delete byteArray.constData();
+     * To free memory: free((void*)ba.constData());
      * Recommended for performance optimization or more flexible handling of the data pointer.
      */
     QByteArray extractDataRef(int index) const;

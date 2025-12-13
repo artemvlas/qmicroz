@@ -640,7 +640,7 @@ QByteArray QMicroz::extractDataRef(int index) const
     char *ch_data = (char*)mz_zip_reader_extract_to_heap(PZIP, index, &data_size, 0);
 
     // Pointer to the data in the QByteArray.
-    // The Data should be deleted on the caller side: delete ba.constData();
+    // The Data should be deleted on the caller side: free((void*)ba.constData());
     QByteArray extracted = ch_data ? QByteArray::fromRawData(ch_data, data_size) : QByteArray();
 
     if (m_verbose)
