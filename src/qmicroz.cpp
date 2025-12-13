@@ -611,7 +611,7 @@ QByteArray QMicroz::extractData(int index) const
     QByteArray extrCopy(extrRef.constData(), extrRef.size());
 
     // Clear extracted from the heap
-    delete extrRef.constData();
+    free((void*)extrRef.constData());
 
     return extrCopy;
 }
