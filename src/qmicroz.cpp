@@ -489,7 +489,7 @@ bool QMicroz::extractIndex(int index, const QString &outputPath)
 
         qWarning() << "QMicroz: Failed to create directory:" << path;
         return false;
-    };
+    }; // lambda createFolder -> bool
 
     if (isFileName(filename)) {
         if (m_verbose)
@@ -528,21 +528,18 @@ bool QMicroz::extractFile(const QString &fileName, const QString &outputPath)
     return extractIndex(findIndex(fileName), outputPath);
 }
 
-bool QMicroz::extractFolder(int index)
+bool QMicroz::extractFolder(const QString &folderName)
 {
     if (outputFolder().isEmpty())
         return false;
 
-    return extractFolder(index, joinPath(outputFolder(), name(index)));
+    return extractFolder(folderName, joinPath(outputFolder(), folderName));
 }
 
-bool QMicroz::extractFolder(int index, const QString &outputPath)
+bool QMicroz::extractFolder(const QString &folderName, const QString &outputPath)
 {
-    if (!isFolder(index))
-        return false;
-
     bool extracted = false;
-    QString folder_entry = name(index);
+    QString folder_entry = toFolderName(folderName);
     ZipContents::const_iterator it = m_zip_entries.constBegin();
 
     for (; it != m_zip_entries.constEnd(); ++it) {

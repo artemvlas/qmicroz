@@ -390,16 +390,18 @@ void test_qmicroz::test_extractFolder()
 
     qmz.closeArchive();
     qmz.setZipFile(zip_file, QMicroz::ModeRead);
-    QVERIFY(qmz && !qmz.extractFolder(0));
-    QVERIFY(qmz.extractFolder(1));
+    QVERIFY(qmz && !qmz.extractFolder(QString()));
+    QVERIFY(!qmz.extractFolder(""));
+    QVERIFY(!qmz.extractFolder("file111.txt"));
+    QVERIFY(qmz.extractFolder("folder111"));
     QVERIFY(QFileInfo::exists(tmp_test_dir + "/folder111"));
 
-    QVERIFY(qmz.extractFolder(2));
+    QVERIFY(qmz.extractFolder("folder222/"));
     QVERIFY(QFileInfo::exists(tmp_test_dir + "/folder222"));
     QVERIFY(QFileInfo(tmp_test_dir + "/folder222/folder333").isDir());
     QVERIFY(QFileInfo(tmp_test_dir + "/folder222/file222-2.txt").isFile());
 
-    QVERIFY(qmz.extractFolder(2, (tmp_test_dir + "/folder111/custom_out")));
+    QVERIFY(qmz.extractFolder("folder222", (tmp_test_dir + "/folder111/custom_out")));
     QVERIFY(QFileInfo::exists(tmp_test_dir + "/folder111/custom_out"));
     QVERIFY(QFileInfo(tmp_test_dir + "/folder111/custom_out/folder333").isDir());
     QVERIFY(QFileInfo(tmp_test_dir + "/folder111/custom_out/file222-2.txt").isFile());

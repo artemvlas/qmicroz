@@ -1,5 +1,6 @@
 QMicroz v0.7
-* Added INSTALL_FILES option to provide the ability to disable copying of this library files.
+* Added INSTALL_FILES option (CMake) to provide the ability to disable copying of this library files.
+* The 'extractFolder' function is unified with 'extractFile' (entry name instead of index as parameter).
 * Fixed some bugs that could potentially lead to undefined behavior.
 
 ---

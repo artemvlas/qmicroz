@@ -177,11 +177,14 @@ public:
     // Finds the <fileName> and extracts to <outputPath>
     bool extractFile(const QString &fileName, const QString &outputPath);
 
-    /* Extracts a folder <index> and its contents to disk: <m_output_folder/folder_entry/contents> */
-    bool extractFolder(int index);
+    /* Extracts the <folderName> and its contents to disk: <m_output_folder/folderName/contents>
+     * <folderName> is also a path inside the archive.
+     * Appending '/' is not necessary (automatic).
+     */
+    bool extractFolder(const QString &folderName);
 
-    /* Extracts a folder <index> and its contents to disk: <outputPath/contents> */
-    bool extractFolder(int index, const QString &outputPath);
+    /* Extracts the <folderName> and its contents to disk: <outputPath/contents> */
+    bool extractFolder(const QString &folderName, const QString &outputPath);
 
     // Extracts all files into the RAM buffer { "name/path" : data }
     BufList extractToBuf() const;
