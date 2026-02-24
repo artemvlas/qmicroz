@@ -32,19 +32,23 @@
 
 const QString QMicroz::s_zip_ext = QStringLiteral(u".zip");
 
-QMicroz::QMicroz() {}
+QMicroz::QMicroz(QObject *parent)
+    : QObject(parent) {}
 
-QMicroz::QMicroz(const char* zipPath)
+QMicroz::QMicroz(const char* zipPath, QObject *parent)
+    : QObject(parent)
 {
     setZipFile(QString(zipPath));
 }
 
-QMicroz::QMicroz(const QString &zipPath, Mode mode)
+QMicroz::QMicroz(const QString &zipPath, Mode mode, QObject *parent)
+    : QObject(parent)
 {
     setZipFile(zipPath, mode);
 }
 
-QMicroz::QMicroz(const QByteArray &bufferedZip)
+QMicroz::QMicroz(const QByteArray &bufferedZip, QObject *parent)
+    : QObject(parent)
 {
     setZipBuffer(bufferedZip);
 }

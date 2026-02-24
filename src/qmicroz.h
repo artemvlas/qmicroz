@@ -19,8 +19,7 @@
 #define QMICROZ_EXPORT
 #endif
 
-#include <QStringList>
-#include <QMap>
+#include <QObject>
 #include <QDateTime>
 
 // Used to store a file data in the memory
@@ -45,22 +44,26 @@ using BufList = QMap<QString, QByteArray>;
 // List of files { "entry name/path" : index } contained in the archive
 using ZipContents = QMap<QString, int>;
 
-class QMICROZ_EXPORT QMicroz
+
+class QMICROZ_EXPORT QMicroz : public QObject
 {
+    Q_OBJECT
+
 public:
     enum Mode : qint8 { ModeAuto, ModeRead, ModeWrite };
 
-    QMicroz();
-    ~QMicroz();
+    QMicroz(QObject *parent = nullptr);
 
     // To avoid ambiguity...
-    explicit QMicroz(const char *zipPath);
+    explicit QMicroz(const char *zipPath, QObject *parent = nullptr);
 
     // Sets the <zipPath> and opens a new archive for Reading or Writing, just like the <setZipFile> func.
-    explicit QMicroz(const QString &zipPath, Mode mode = ModeAuto);
+    explicit QMicroz(const QString &zipPath, Mode mode = ModeAuto, QObject *parent = nullptr);
 
     // Opens the <bufferedZip> archive for Reading, just like the <setZipBuffer> func.
-    explicit QMicroz(const QByteArray &bufferedZip);
+    explicit QMicroz(const QByteArray &bufferedZip, QObject *parent = nullptr);
+
+    ~QMicroz();
 
     /* Sets and opens the zip for the current object.
      * ModeAuto
