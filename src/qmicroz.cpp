@@ -267,9 +267,7 @@ int QMicroz::findIndex(const QString &fileName) const
 
     // deep search, matching only the name, e.g. "file.txt" for "folder/file.txt"
     if (!fileName.contains(s_sep)) {
-        ZipContents::const_iterator it;
-
-        for (it = m_zip_entries.constBegin(); it != m_zip_entries.constEnd(); ++it) {
+        for (auto it = m_zip_entries.constBegin(); it != m_zip_entries.constEnd(); ++it) {
             if (isFileName(it.key())
                 && fileName == QFileInfo(it.key()).fileName())
             {
@@ -678,7 +676,7 @@ bool QMicroz::compress(const QString &path)
     const QString zip_name = base_name + s_zip_ext;
     const QString zip_path = joinPath(fi.absolutePath(), zip_name);
 
-    return compress(QStringList(path), zip_path);
+    return compress(path, zip_path);
 }
 
 bool QMicroz::compress(const QStringList &paths)
@@ -700,7 +698,9 @@ bool QMicroz::compress(const QString &source_path, const QString &zip_path)
         return false;
     }
 
-    return compress(QStringList(source_path), zip_path);
+    QMicroz qmz(zip_path, ModeWrite);
+
+    return qmz && qmz.addToZip(source_path);
 }
 
 bool QMicroz::compress(const QStringList &paths, const QString &zip_path)
