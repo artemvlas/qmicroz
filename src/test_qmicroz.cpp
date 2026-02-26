@@ -22,6 +22,7 @@ public:
 private slots:
     void test_compress_buf_file();
     void test_compress_buf_list();
+    void test_data_size();
     void test_entryName();
     void test_extractToBufList();
     void test_extractToBufFile();
@@ -124,6 +125,16 @@ void test_qmicroz::test_compress_buf_list()
     QString custom_output = tmp_test_dir + "/custom_folder/file111.txt";
     QVERIFY(qmz.extractFile("file1.txt", custom_output));
     QVERIFY(QFileInfo::exists(custom_output));
+}
+
+void test_qmicroz::test_data_size()
+{
+    QString path = tmp_test_dir + "/test_compress_buf_file.zip";
+
+    QMicroz qmz(path);
+    QVERIFY(qmz.sizeCompressed(0) > 0);
+    QVERIFY(qmz.sizeCompressed() > qmz.sizeCompressed(0));
+    QVERIFY(qmz.sizeUncompressed(0) > qmz.sizeCompressed(0));
 }
 
 void test_qmicroz::test_entryName()
@@ -420,6 +431,7 @@ void test_qmicroz::test_noArchiveSet()
     QVERIFY(qmz.count() == 0);
     QVERIFY(qmz.sizeCompressed(0) == 0);
     QVERIFY(qmz.sizeCompressed(1) == 0);
+    QVERIFY(qmz.sizeCompressed() == 0);
     QVERIFY(qmz.sizeUncompressed() == 0);
     QVERIFY(qmz.sizeUncompressed(-1) == 0);
     QVERIFY(!qmz.lastModified(0).isValid());

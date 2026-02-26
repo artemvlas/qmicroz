@@ -1,6 +1,7 @@
 QMicroz v0.7
 * The main class inherits QObject.
 * Added INSTALL_FILES option (CMake) to provide the ability to disable copying of this library files.
+* Added 'sizeCompressed' function to get archive size.
 * The 'extractFolder' function is unified with 'extractFile' (entry name instead of index as parameter).
 * Fixed some bugs that could potentially lead to undefined behavior.
 

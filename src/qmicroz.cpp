@@ -237,6 +237,11 @@ bool QMicroz::addEntry(const QString &entryName, std::function<bool()> addFunc)
     return true;
 }
 
+qint64 QMicroz::sizeCompressed() const
+{
+    return PZIP ? PZIP->m_archive_size : 0;
+}
+
 qint64 QMicroz::sizeUncompressed() const
 {
     qint64 total_size = 0;

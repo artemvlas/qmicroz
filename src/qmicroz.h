@@ -52,7 +52,7 @@ class QMICROZ_EXPORT QMicroz : public QObject
 public:
     enum Mode : qint8 { ModeAuto, ModeRead, ModeWrite };
 
-    QMicroz(QObject *parent = nullptr);
+    explicit QMicroz(QObject *parent = nullptr);
 
     // To avoid ambiguity...
     explicit QMicroz(const char *zipPath, QObject *parent = nullptr);
@@ -105,6 +105,9 @@ public:
 
     // The path to place the extracted files
     const QString& outputFolder() const;
+
+    // Archive size
+    qint64 sizeCompressed() const;
 
     // Total uncompressed data size (space required for extraction)
     qint64 sizeUncompressed() const;
