@@ -57,8 +57,11 @@ public:
     // To avoid ambiguity...
     explicit QMicroz(const char *zipPath, QObject *parent = nullptr);
 
-    // Sets the <zipPath> and opens a new archive for Reading or Writing, just like the <setZipFile> func.
-    explicit QMicroz(const QString &zipPath, Mode mode = ModeAuto, QObject *parent = nullptr);
+    // Sets the <zipPath> with Mode::ModeAuto
+    explicit QMicroz(const QString &zipPath, QObject *parent = nullptr);
+
+    // Sets the <zipPath> and opens the archive for Reading or Writing, just like the <setZipFile> func.
+    explicit QMicroz(const QString &zipPath, Mode mode, QObject *parent = nullptr);
 
     // Opens the <bufferedZip> archive for Reading, just like the <setZipBuffer> func.
     explicit QMicroz(const QByteArray &bufferedZip, QObject *parent = nullptr);

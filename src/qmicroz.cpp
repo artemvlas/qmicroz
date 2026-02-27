@@ -41,6 +41,12 @@ QMicroz::QMicroz(const char* zipPath, QObject *parent)
     setZipFile(QString(zipPath));
 }
 
+QMicroz::QMicroz(const QString &zipPath, QObject *parent)
+    : QObject(parent)
+{
+    setZipFile(zipPath);
+}
+
 QMicroz::QMicroz(const QString &zipPath, Mode mode, QObject *parent)
     : QObject(parent)
 {
