@@ -35,9 +35,6 @@ target_include_directories(qmicroz PUBLIC src)
 
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(qmicroz PRIVATE MAKE_SHARED)
-  message("Make SHARED")
-else()
-  message("Make STATIC")
 endif()
 
 # unit test

@@ -14,7 +14,7 @@
 
 #if defined(MAKE_SHARED)
 #define QMICROZ_EXPORT Q_DECL_EXPORT
-#pragma message("Symbols Export is Enabled")
+#pragma message("QMicroz build is SHARED. Symbols export is Enabled")
 #else
 #define QMICROZ_EXPORT
 #endif
