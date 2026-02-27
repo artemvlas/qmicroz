@@ -20,6 +20,7 @@
 #endif
 
 #include <QObject>
+#include <QMap>
 #include <QDateTime>
 
 // Used to store a file data in the memory
