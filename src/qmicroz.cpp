@@ -518,11 +518,11 @@ bool QMicroz::extractIndex(int index, const QString &outputPath)
         QByteArray outputPathBytes = outputPath.toUtf8();
         bool res = mz_zip_reader_extract_to_file(PZIP, index, outputPathBytes.constData(), 0);
 
-        if (m_verbose)
+        if (m_verbose) {
             std::cout << CH_SPACE << (res ? RESULT_OK : RESULT_FAILED) << std::endl;
-
-        if (!res)
+        } else if (!res) {
             qWarning() << "QMicroz: Failed to extract file:" << index << filename;
+        }
 
         return res;
     }
