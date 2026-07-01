@@ -128,7 +128,6 @@ bool QMicroz::setZipFile(const QString &zipPath, Mode mode)
     m_zip_path = zipPath;
 
     if (isModeReading()) {
-        updateZipContents();
         setOutputFolder(); // zip file's parent folder
     }
 
@@ -151,7 +150,6 @@ bool QMicroz::setZipBuffer(const QByteArray &bufferedZip)
 
         // set the new one
         m_archive = pZip;
-        updateZipContents();
         return true;
     }
 
@@ -197,23 +195,6 @@ void QMicroz::closeArchive()
     m_zip_entries.clear();
     m_zip_path.clear();
     m_output_folder.clear();
-}
-
-const ZipContents& QMicroz::updateZipContents()
-{
-    m_zip_entries.clear();
-
-    if (!m_archive)
-        return m_zip_entries;
-
-    // iterating...
-    for (int it = 0; it < count(); ++it) {
-        const QString filename = name(it);
-        if (!filename.isEmpty())
-            m_zip_entries[filename] = it;
-    }
-
-    return m_zip_entries;
 }
 
 bool QMicroz::addEntry(const QString &entryName, std::function<bool()> addFunc)
@@ -264,8 +245,23 @@ const QString& QMicroz::zipFilePath() const
     return m_zip_path;
 }
 
-const ZipContents& QMicroz::contents() const
+const ZipContents& QMicroz::contents()
 {
+    auto updateContents = [this] {
+        m_zip_entries.clear();
+
+        // iterating...
+        for (int it = 0; it < count(); ++it) {
+            const QString filename = name(it);
+            if (!filename.isEmpty())
+                m_zip_entries[filename] = it;
+        }
+    }; // lambda
+
+    // not cached yet
+    if (m_zip_entries.isEmpty() && isModeReading())
+        updateContents();
+
     return m_zip_entries;
 }
 
@@ -274,15 +270,17 @@ int QMicroz::count() const
     return mz_zip_reader_get_num_files(PZIP);
 }
 
-int QMicroz::findIndex(const QString &fileName) const
+int QMicroz::findIndex(const QString &fileName)
 {
+    const ZipContents &entries = contents();
+
     // full path matching
-    if (m_zip_entries.contains(fileName))
-        return m_zip_entries.value(fileName);
+    if (entries.contains(fileName))
+        return entries.value(fileName);
 
     // deep search, matching only the name, e.g. "file.txt" for "folder/file.txt"
     if (!fileName.contains(s_sep)) {
-        for (auto it = m_zip_entries.constBegin(); it != m_zip_entries.constEnd(); ++it) {
+        for (auto it = entries.constBegin(); it != entries.constEnd(); ++it) {
             if (isFileName(it.key())
                 && fileName == QFileInfo(it.key()).fileName())
             {
@@ -553,9 +551,10 @@ bool QMicroz::extractFolder(const QString &folderName, const QString &outputPath
 {
     bool extracted = false;
     QString folder_entry = toFolderName(folderName);
-    ZipContents::const_iterator it = m_zip_entries.constBegin();
+    const ZipContents &entries = contents();
+    ZipContents::const_iterator it = entries.constBegin();
 
-    for (; it != m_zip_entries.constEnd(); ++it) {
+    for (; it != entries.constEnd(); ++it) {
         if (it.key().startsWith(folder_entry)) {
             // e.g. "folder_entry/file" --> "file"
             QString relPath = it.key().mid(folder_entry.size());
@@ -568,7 +567,7 @@ bool QMicroz::extractFolder(const QString &folderName, const QString &outputPath
     return extracted;
 }
 
-BufList QMicroz::extractToBuf() const
+BufList QMicroz::extractToBuf()
 {
     if (!isModeReading()) {
         qWarning() << WARNING_WRONGMODE;
@@ -576,10 +575,11 @@ BufList QMicroz::extractToBuf() const
     }
 
     BufList res;
+    const ZipContents &entries = contents();
 
     // extracting...
-    ZipContents::const_iterator it = m_zip_entries.constBegin();
-    for (; it != m_zip_entries.constEnd(); ++it) {
+    ZipContents::const_iterator it = entries.constBegin();
+    for (; it != entries.constEnd(); ++it) {
         res[it.key()] = extractData(it.value());
     }
 
@@ -604,7 +604,7 @@ BufFile QMicroz::extractToBuf(int index) const
     return bufFile;
 }
 
-BufFile QMicroz::extractFileToBuf(const QString &fileName) const
+BufFile QMicroz::extractFileToBuf(const QString &fileName)
 {
     return extractToBuf(findIndex(fileName));
 }

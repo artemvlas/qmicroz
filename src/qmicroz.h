@@ -119,13 +119,13 @@ public:
 
     /*** Zipped Items Info ***/
     // Returns a list of entries { "name/path" : index } contained in the archive
-    const ZipContents& contents() const;
+    const ZipContents& contents();
 
     // Returns the number of items in the archive
     int count() const;
 
     // Returns the index of the <fileName> entry, -1 if not found
-    int findIndex(const QString &fileName) const;
+    int findIndex(const QString &fileName);
 
     // Whether the index belongs to the folder entry
     bool isFolder(int index) const;
@@ -197,13 +197,13 @@ public:
     bool extractFolder(const QString &folderName, const QString &outputPath);
 
     // Extracts all files into the RAM buffer { "name/path" : data }
-    BufList extractToBuf() const;
+    BufList extractToBuf();
 
     // Extracts a file with <index> into the buffer
     BufFile extractToBuf(int index) const;
 
     // Searches for a <fileName> and, if found, extracts it to the buffer; slower than <index>
-    BufFile extractFileToBuf(const QString &fileName) const;
+    BufFile extractFileToBuf(const QString &fileName);
 
     /* Returns the extracted file data.
      * The QByteArray owns the copied data.
@@ -290,9 +290,6 @@ public:
     /*** OBSOLETE ***/
 
 private:
-    // Updates the list of current archive contents <m_zip_entries>
-    const ZipContents& updateZipContents();
-
     /* If the <entryName> is not in the <m_zip_entries> list:
      * 1. adds item to the archive using the <addFunc>.
      * 2. adds the <entryName> to the <m_zip_entries>.

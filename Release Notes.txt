@@ -4,6 +4,7 @@ QMicroz v0.7
 * Added 'sizeCompressed' function to get archive size.
 * The 'extractFolder' function is unified with 'extractFile' (entry name instead of index as parameter).
 * Fixed some bugs that could potentially lead to undefined behavior.
+* Now the content cache is created only when requested, which speeds up opening the archive.
 
 ---
 QMicroz v0.6
