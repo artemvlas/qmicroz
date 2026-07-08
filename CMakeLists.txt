@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_TESTS "Enable building of unit tests" ON)
 option(INSTALL_FILES "Enable installation" ON)
+option(PATH_TRAVERSAL_PROTECTION "Enable path traversal protection" ON)
 
 # find Qt packages
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
@@ -35,6 +36,10 @@ target_include_directories(qmicroz PUBLIC src)
 
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(qmicroz PRIVATE MAKE_SHARED)
+endif()
+
+if(PATH_TRAVERSAL_PROTECTION)
+  target_compile_definitions(qmicroz PRIVATE CHECK_PATH_TRAVERSAL)
 endif()
 
 # unit test

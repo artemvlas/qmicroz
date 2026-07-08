@@ -37,6 +37,7 @@ private slots:
     void test_nestedFoldersCreation();
     void test_extractFolder();
     void test_noArchiveSet();
+    //void test_path_traversal();
 
 private:
     const QString tmp_test_dir = QDir::currentPath() + "/tmp_test_files";
@@ -458,6 +459,18 @@ void test_qmicroz::test_noArchiveSet()
     QVERIFY(qmz.outputFolder().isNull());
     */
 }
+
+/*void test_qmicroz::test_path_traversal()
+{
+    QString zip_file = tmp_test_dir + "/test_path_traversal.zip";
+    QMicroz qmz(zip_file, QMicroz::ModeWrite);
+
+    qmz << BufFile("../../traversal.txt", "Some data to test TRAVERSAL.txt");
+
+    qmz.closeArchive();
+    qmz.setZipFile(zip_file, QMicroz::ModeRead);
+    QVERIFY(qmz && !qmz.extractIndex(0));
+}*/
 
 QTEST_APPLESS_MAIN(test_qmicroz)
 

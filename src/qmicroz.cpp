@@ -476,7 +476,20 @@ bool QMicroz::extractIndex(int index)
     if (outputFolder().isEmpty())
         return false;
 
-    return extractIndex(index, joinPath(outputFolder(), name(index)));
+    const QString outputPath = joinPath(outputFolder(), name(index));
+
+#if defined(CHECK_PATH_TRAVERSAL)
+    const QString canonical = QFileInfo(outputPath).absolutePath();
+
+    // Protection against placing a file outside the output folder.
+    // E.g. "../../file" entry inside the archive.
+    if (!canonical.startsWith(outputFolder())) {
+        qWarning() << "QMicroz: Path traversal attempt blocked:" << name(index);
+        return false;
+    }
+#endif
+
+    return extractIndex(index, outputPath);
 }
 
 bool QMicroz::extractIndex(int index, const QString &outputPath)
