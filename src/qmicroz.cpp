@@ -141,20 +141,26 @@ bool QMicroz::setZipBuffer(const QByteArray &bufferedZip)
         return false;
     }
 
-    // open zip archive
+    // Close the currently opened archive first (clears the old m_buffered_zip too).
+    closeArchive();
+
+    // Take ownership of the bytes. Implicit sharing: no deep copy here,
+    // just a refcount bump. The data now lives as long as this object.
+    m_buffered_zip = bufferedZip;
+
+    // create zip archive
     mz_zip_archive *pZip = new mz_zip_archive();
 
-    if (mz_zip_reader_init_mem(pZip, bufferedZip.constData(), bufferedZip.size(), 0)) {
-        // close the currently opened one if any
-        closeArchive();
-
-        // set the new one
+    // NB: init from m_buffered_zip, not from the argument — miniz stores this
+    // exact pointer and reads through it for the whole archive lifetime.
+    if (mz_zip_reader_init_mem(pZip, m_buffered_zip.constData(), m_buffered_zip.size(), 0)) {
         m_archive = pZip;
         return true;
     }
 
     qWarning() << "QMicroz: Failed to open buffered zip";
     delete pZip;
+    m_buffered_zip.clear();   // roll back the ownership we took
     return false;
 }
 
@@ -194,6 +200,7 @@ void QMicroz::closeArchive()
     m_archive = nullptr;
     m_zip_entries.clear();
     m_zip_path.clear();
+    m_buffered_zip.clear();
     m_output_folder.clear();
 }
 

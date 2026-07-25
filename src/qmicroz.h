@@ -317,6 +317,10 @@ private:
     // Path to the current zip file
     QString m_zip_path;
 
+    // Holds the bytes of a zip opened from memory (setZipBuffer).
+    // Must outlive m_archive: miniz keeps a raw pointer into this data.
+    QByteArray m_buffered_zip;
+
     // Folder to place the extracted files
     QString m_output_folder;
 

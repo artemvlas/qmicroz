@@ -37,6 +37,7 @@ private slots:
     void test_nestedFoldersCreation();
     void test_extractFolder();
     void test_noArchiveSet();
+    void test_bufferOutlivesSource();
     //void test_path_traversal();
 
 private:
@@ -471,6 +472,31 @@ void test_qmicroz::test_noArchiveSet()
     qmz.setZipFile(zip_file, QMicroz::ModeRead);
     QVERIFY(qmz && !qmz.extractIndex(0));
 }*/
+
+void test_qmicroz::test_bufferOutlivesSource()
+{
+    QByteArray zip;
+    {
+        QString tmpZipPath = tmp_test_dir + "/tmpZipPath.txt";
+        BufFile bf(QStringLiteral("a.txt"), QByteArray("hello"));
+        QMicroz::compress(bf, tmpZipPath);
+        QFile f(tmpZipPath);
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        zip = f.readAll();
+    }
+
+    QMicroz qmz;
+
+    // Deep copy via (const char*, size) - scoped SINGLE owner of the block, refcount 1.
+    QByteArray scoped(zip.constData(), zip.size());
+    QVERIFY(qmz.setZipBuffer(scoped));
+
+    // refcount 1 → detach NO → <fill> rewrites exactly the block that miniz is looking at.
+    scoped.fill('X');
+
+    const BufList out = qmz.extractToBuf();
+    QCOMPARE(out.value(QStringLiteral("a.txt")), QByteArray("hello"));
+}
 
 QTEST_APPLESS_MAIN(test_qmicroz)
 
